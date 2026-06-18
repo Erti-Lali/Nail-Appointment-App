@@ -1,0 +1,330 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { formatPrice } from "@nailstudio/shared";
+import { toast } from "sonner";
+import {
+  Loader2, Building2, Users, CalendarDays, TrendingUp,
+  LogOut, Shield, ExternalLink, ArrowLeft, Plus, KeyRound, X, Check, Copy,
+} from "lucide-react";
+
+const PLAN_LABELS: Record<string, string> = {
+  baslangic: "Başlangıç", profesyonel: "Profesyonel", isletme: "İşletme",
+};
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Süper Admin", tenant_admin: "Stüdyo Admini", staff: "Personel", customer: "Müşteri",
+};
+
+export default function AdminPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [loading, setLoading] = useState(true);
+  const [denied, setDenied] = useState(false);
+  const [data, setData] = useState<any>(null);
+  const [token, setToken] = useState("");
+  const [meId, setMeId] = useState("");
+  const [showNew, setShowNew] = useState(false);
+  const [resetResult, setResetResult] = useState<{ email: string; password: string } | null>(null);
+
+  const fetchData = async (tk: string) => {
+    const res = await fetch("/api/admin/data", { headers: { Authorization: `Bearer ${tk}` } });
+    if (res.status === 403) { setDenied(true); return; }
+    if (!res.ok) { toast.error("Veri alınamadı"); return; }
+    setData(await res.json());
+  };
+
+  useEffect(() => {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.replace("/auth/login"); return; }
+      setToken(session.access_token);
+      setMeId(session.user.id);
+      await fetchData(session.access_token);
+      setLoading(false);
+    }
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateTenant = async (tenantId: string, patch: Record<string, unknown>) => {
+    const prev = data;
+    setData((d: any) => ({ ...d, tenants: d.tenants.map((t: any) => (t.id === tenantId ? { ...t, ...patch } : t)) }));
+    const res = await fetch("/api/admin/tenant", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ tenantId, ...patch }),
+    });
+    if (!res.ok) { setData(prev); toast.error("Güncellenemedi"); } else toast.success("Güncellendi");
+  };
+
+  const changeRole = async (userId: string, role: string) => {
+    const prev = data;
+    setData((d: any) => ({ ...d, users: d.users.map((u: any) => (u.id === userId ? { ...u, role } : u)) }));
+    const res = await fetch("/api/admin/user", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ userId, action: "role", role }),
+    });
+    if (!res.ok) {
+      setData(prev);
+      const j = await res.json().catch(() => ({}));
+      toast.error(j.error ?? "Rol değiştirilemedi");
+    } else toast.success("Rol güncellendi");
+  };
+
+  const resetPassword = async (userId: string, email: string) => {
+    const res = await fetch("/api/admin/user", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ userId, action: "reset_password" }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) { toast.error(j.error ?? "Sıfırlanamadı"); return; }
+    setResetResult({ email, password: j.tempPassword });
+  };
+
+  const signOut = async () => { await supabase.auth.signOut(); router.push("/auth/login"); };
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#FFF5F9] flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" /></div>;
+  }
+  if (denied) {
+    return (
+      <div className="min-h-screen bg-[#FFF5F9] flex items-center justify-center p-6">
+        <div className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl p-8 text-center max-w-sm">
+          <div className="w-14 h-14 rounded-2xl bg-[#DB5E9B]/10 flex items-center justify-center mx-auto mb-4"><Shield className="w-7 h-7 text-[#DB5E9B]" /></div>
+          <h1 className="text-xl font-bold text-[#1A0A14]">Erişim yetkiniz yok</h1>
+          <p className="text-[#6B1A45] text-sm mt-2">Bu panel yalnızca platform yöneticilerine açıktır.</p>
+          <Link href="/dashboard" className="inline-flex items-center gap-2 mt-6 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold px-5 py-2.5 rounded-xl transition-colors"><ArrowLeft className="w-4 h-4" /> Panele Dön</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { stats, tenants, users } = data;
+  const KPIS = [
+    { icon: Building2, label: "Stüdyo", value: `${stats.activeTenants}/${stats.tenants}`, sub: "aktif / toplam" },
+    { icon: Users, label: "Kullanıcı", value: stats.users, sub: "toplam hesap" },
+    { icon: CalendarDays, label: "Randevu", value: stats.appointments, sub: "tüm zamanlar" },
+    { icon: TrendingUp, label: "Ciro", value: formatPrice(stats.revenue, "TRY"), sub: "tamamlanan" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#FFF5F9] text-[#1A0A14]">
+      <header className="sticky top-0 z-20 bg-[#FFFFFF] border-b border-[#F3E0EB]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#DB5E9B] flex items-center justify-center shrink-0"><Shield className="w-5 h-5 text-white" /></div>
+            <div className="leading-tight min-w-0">
+              <p className="font-bold text-sm truncate">Platform Yönetimi</p>
+              <p className="text-[#9CA3AF] text-xs">NailStudio 101 · Süper Admin</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/dashboard" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-[#6B1A45] hover:text-[#DB5E9B] px-3 py-2 transition-colors"><ArrowLeft className="w-4 h-4" /> Stüdyo Paneli</Link>
+            <button onClick={signOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B1A45] hover:text-red-500 px-3 py-2 transition-colors"><LogOut className="w-4 h-4" /> Çıkış</button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {KPIS.map((k) => (
+            <div key={k.label} className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-[#9CA3AF] text-xs">{k.label}</p>
+                <div className="w-8 h-8 rounded-lg bg-[#DB5E9B]/10 flex items-center justify-center"><k.icon className="w-4 h-4 text-[#DB5E9B]" /></div>
+              </div>
+              <p className="text-2xl font-bold mt-2 leading-tight">{k.value}</p>
+              <p className="text-[#9CA3AF] text-[11px] mt-0.5">{k.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Studios / subscriptions */}
+        <section className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#F3E0EB] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Stüdyolar & Abonelikler</h2>
+              <p className="text-[#9CA3AF] text-xs mt-0.5">{tenants.length} stüdyo</p>
+            </div>
+            <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1.5 bg-[#DB5E9B] hover:bg-[#C84B88] text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors shrink-0">
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Yeni Stüdyo</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="text-left text-xs text-[#9CA3AF] border-b border-[#F3E0EB]">
+                  <th className="px-5 py-3 font-medium">Stüdyo</th>
+                  <th className="px-3 py-3 font-medium">Plan</th>
+                  <th className="px-3 py-3 font-medium text-center">Müşteri</th>
+                  <th className="px-3 py-3 font-medium text-center">Randevu</th>
+                  <th className="px-3 py-3 font-medium text-right">Ciro</th>
+                  <th className="px-3 py-3 font-medium text-center">Durum</th>
+                  <th className="px-5 py-3 font-medium text-right">Sayfa</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F3E0EB]">
+                {tenants.map((t: any) => (
+                  <tr key={t.id} className="hover:bg-[#FFF5F9] transition-colors">
+                    <td className="px-5 py-3">
+                      <Link href={`/admin/studio/${t.id}`} className="font-medium hover:text-[#DB5E9B] transition-colors">{t.name}</Link>
+                      <p className="text-[#9CA3AF] text-xs">/{t.slug}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      <select value={t.subscription_plan} onChange={(e) => updateTenant(t.id, { subscription_plan: e.target.value })}
+                        className="bg-[#FEF0F5] border border-[#F3E0EB] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-[#DB5E9B] cursor-pointer">
+                        {Object.entries(PLAN_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-3 py-3 text-center">{t.customers}</td>
+                    <td className="px-3 py-3 text-center">{t.appointments}</td>
+                    <td className="px-3 py-3 text-right text-[#DB5E9B] font-semibold whitespace-nowrap">{formatPrice(t.revenue, "TRY")}</td>
+                    <td className="px-3 py-3 text-center">
+                      <button onClick={() => updateTenant(t.id, { is_active: !t.is_active })}
+                        className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${t.is_active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                        {t.is_active ? "Aktif" : "Pasif"}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <a href={`/book/${t.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#6B1A45] hover:text-[#DB5E9B] text-xs">Aç <ExternalLink className="w-3 h-3" /></a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Users */}
+        <section className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#F3E0EB]">
+            <h2 className="font-semibold">Kullanıcılar</h2>
+            <p className="text-[#9CA3AF] text-xs mt-0.5">{users.length} hesap</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="text-left text-xs text-[#9CA3AF] border-b border-[#F3E0EB]">
+                  <th className="px-5 py-3 font-medium">Ad</th>
+                  <th className="px-3 py-3 font-medium">E-posta</th>
+                  <th className="px-3 py-3 font-medium">Rol</th>
+                  <th className="px-3 py-3 font-medium">Stüdyo</th>
+                  <th className="px-5 py-3 font-medium text-right">İşlem</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F3E0EB]">
+                {users.map((u: any) => (
+                  <tr key={u.id} className="hover:bg-[#FFF5F9] transition-colors">
+                    <td className="px-5 py-3 font-medium whitespace-nowrap">{u.name}{u.id === meId && <span className="text-[#9CA3AF] font-normal"> (siz)</span>}</td>
+                    <td className="px-3 py-3 text-[#6B1A45]">{u.email}</td>
+                    <td className="px-3 py-3">
+                      <select value={u.role} disabled={u.id === meId} onChange={(e) => changeRole(u.id, e.target.value)}
+                        className="bg-[#FEF0F5] border border-[#F3E0EB] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-[#DB5E9B] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        {Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-3 py-3 text-[#6B1A45]">{u.tenant_name}</td>
+                    <td className="px-5 py-3 text-right">
+                      <button onClick={() => resetPassword(u.id, u.email)} className="inline-flex items-center gap-1.5 text-xs font-medium text-[#6B1A45] hover:text-[#DB5E9B] border border-[#F3E0EB] hover:border-[#DB5E9B] rounded-lg px-2.5 py-1.5 transition-colors">
+                        <KeyRound className="w-3.5 h-3.5" /> Şifre Sıfırla
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      {showNew && <NewStudioModal token={token} onClose={() => setShowNew(false)} onCreated={() => { setShowNew(false); fetchData(token); }} />}
+      {resetResult && <ResetResultModal data={resetResult} onClose={() => setResetResult(null)} />}
+    </div>
+  );
+}
+
+function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({ name: "", slug: "", plan: "baslangic", ownerEmail: "", ownerPassword: "", ownerFirstName: "", ownerLastName: "" });
+  const [saving, setSaving] = useState(false);
+  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const inp = "w-full bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-3 py-2 text-sm text-[#1A0A14] placeholder:text-[#9CA3AF] outline-none focus:border-[#DB5E9B] transition-all";
+  const lbl = "block text-xs font-medium text-[#6B1A45] mb-1";
+
+  const submit = async () => {
+    if (!form.name.trim() || !form.slug.trim()) { toast.error("İsim ve slug zorunlu"); return; }
+    setSaving(true);
+    const res = await fetch("/api/admin/studio", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(form),
+    });
+    const j = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (!res.ok) { toast.error(j.error ?? "Oluşturulamadı"); return; }
+    toast.success(j.ownerWarning ? "Stüdyo oluştu (sahip hesabı hariç)" : "Stüdyo oluşturuldu");
+    if (j.ownerWarning) toast.error(j.ownerWarning);
+    onCreated();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl overflow-hidden animate-slide-up max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F3E0EB] sticky top-0 bg-[#FFFFFF]">
+          <h2 className="font-semibold">Yeni Stüdyo</h2>
+          <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#1A0A14]"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div><label className={lbl}>Stüdyo Adı *</label><input className={inp} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Glamour Nails" /></div>
+          <div>
+            <label className={lbl}>Slug * (randevu linki)</label>
+            <input className={inp} value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="glamour-nails" />
+            <p className="text-[10px] text-[#9CA3AF] mt-1">/book/{form.slug || "slug"}</p>
+          </div>
+          <div>
+            <label className={lbl}>Plan</label>
+            <select className={inp + " cursor-pointer"} value={form.plan} onChange={(e) => set("plan", e.target.value)}>
+              {Object.entries(PLAN_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+          <div className="pt-2 border-t border-[#F3E0EB]">
+            <p className="text-xs font-semibold text-[#6B1A45] mb-2">Sahip Hesabı (opsiyonel)</p>
+            <div className="grid grid-cols-2 gap-2">
+              <input className={inp} value={form.ownerFirstName} onChange={(e) => set("ownerFirstName", e.target.value)} placeholder="Ad" />
+              <input className={inp} value={form.ownerLastName} onChange={(e) => set("ownerLastName", e.target.value)} placeholder="Soyad" />
+            </div>
+            <input className={inp + " mt-2"} type="email" value={form.ownerEmail} onChange={(e) => set("ownerEmail", e.target.value)} placeholder="E-posta" />
+            <input className={inp + " mt-2"} type="text" value={form.ownerPassword} onChange={(e) => set("ownerPassword", e.target.value)} placeholder="Şifre (boşsa rastgele)" />
+          </div>
+        </div>
+        <div className="flex gap-3 p-5 pt-0">
+          <button onClick={onClose} className="flex-1 border border-[#F3E0EB] text-[#6B1A45] hover:border-[#DB5E9B] font-medium py-2.5 rounded-xl transition-all">İptal</button>
+          <button onClick={submit} disabled={saving} className="flex-1 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oluştur"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResetResultModal({ data, onClose }: { data: { email: string; password: string }; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl p-6 animate-slide-up text-center">
+        <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-3"><Check className="w-6 h-6 text-green-600" /></div>
+        <h2 className="font-bold text-[#1A0A14]">Geçici şifre oluşturuldu</h2>
+        <p className="text-[#6B1A45] text-sm mt-1">{data.email}</p>
+        <div className="mt-4 flex items-center gap-2 bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-3 py-2.5">
+          <code className="flex-1 text-[#1A0A14] font-mono text-sm break-all text-left">{data.password}</code>
+          <button onClick={() => { navigator.clipboard?.writeText(data.password); toast.success("Kopyalandı"); }} className="text-[#9CA3AF] hover:text-[#DB5E9B] shrink-0"><Copy className="w-4 h-4" /></button>
+        </div>
+        <p className="text-[11px] text-[#9CA3AF] mt-3">Bu şifreyi kullanıcıyla paylaşın; ilk girişte değiştirmesini önerin.</p>
+        <button onClick={onClose} className="w-full mt-5 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl transition-colors">Tamam</button>
+      </div>
+    </div>
+  );
+}
