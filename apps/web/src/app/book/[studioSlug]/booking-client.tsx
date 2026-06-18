@@ -165,6 +165,9 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
           <p className="text-[#9CA3AF] text-xs mt-5">
             Randevu durumu onaylandığında bilgilendirileceksiniz.
           </p>
+          <a href="/hesabim/kayit" className="mt-5 inline-flex items-center justify-center gap-2 w-full border border-[#DB5E9B]/40 hover:border-[#DB5E9B] text-[#DB5E9B] font-semibold py-2.5 rounded-xl transition-all">
+            Randevularımı takip et
+          </a>
         </div>
       </div>
     );

@@ -87,6 +87,9 @@ export default function LandingPage() {
             <Link href="#fiyatlandirma" className="hidden sm:block text-sm font-medium text-[#6B1A45] hover:text-[#DB5E9B] px-3 py-2 transition-colors">
               Fiyatlar
             </Link>
+            <Link href="/hesabim" className="hidden sm:block text-sm font-medium text-[#6B1A45] hover:text-[#DB5E9B] px-3 py-2 transition-colors">
+              Randevularım
+            </Link>
             <Link href="/auth/login" className="text-sm font-medium text-[#6B1A45] hover:text-[#DB5E9B] px-3 py-2 transition-colors">
               Giriş Yap
             </Link>
