@@ -86,16 +86,16 @@ export default function AdminPage() {
   const signOut = async () => { await supabase.auth.signOut(); router.push("/auth/login"); };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#FFF5F9] flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" /></div>;
+    return <div className="min-h-screen bg-canvas flex items-center justify-center"><Loader2 className="w-8 h-8 text-brand animate-spin" /></div>;
   }
   if (denied) {
     return (
-      <div className="min-h-screen bg-[#FFF5F9] flex items-center justify-center p-6">
-        <div className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl p-8 text-center max-w-sm">
-          <div className="w-14 h-14 rounded-2xl bg-[#DB5E9B]/10 flex items-center justify-center mx-auto mb-4"><Shield className="w-7 h-7 text-[#DB5E9B]" /></div>
-          <h1 className="text-xl font-bold text-[#1A0A14]">Erişim yetkiniz yok</h1>
-          <p className="text-[#6B1A45] text-sm mt-2">Bu panel yalnızca platform yöneticilerine açıktır.</p>
-          <Link href="/dashboard" className="inline-flex items-center gap-2 mt-6 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold px-5 py-2.5 rounded-xl transition-colors"><ArrowLeft className="w-4 h-4" /> Panele Dön</Link>
+      <div className="min-h-screen bg-canvas flex items-center justify-center p-6">
+        <div className="bg-surface border border-line rounded-2xl p-8 text-center max-w-sm">
+          <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center mx-auto mb-4"><Shield className="w-7 h-7 text-brand" /></div>
+          <h1 className="text-xl font-bold text-ink">Erişim yetkiniz yok</h1>
+          <p className="text-ink-muted text-sm mt-2">Bu panel yalnızca platform yöneticilerine açıktır.</p>
+          <Link href="/dashboard" className="inline-flex items-center gap-2 mt-6 bg-brand hover:bg-brand-dark text-white font-semibold px-5 py-2.5 rounded-xl transition-colors"><ArrowLeft className="w-4 h-4" /> Panele Dön</Link>
         </div>
       </div>
     );
@@ -110,19 +110,19 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFF5F9] text-[#1A0A14]">
-      <header className="sticky top-0 z-20 bg-[#FFFFFF] border-b border-[#F3E0EB]">
+    <div className="min-h-screen bg-canvas text-ink">
+      <header className="sticky top-0 z-20 bg-surface border-b border-line">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[#DB5E9B] flex items-center justify-center shrink-0"><Shield className="w-5 h-5 text-white" /></div>
+            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center shrink-0"><Shield className="w-5 h-5 text-white" /></div>
             <div className="leading-tight min-w-0">
               <p className="font-bold text-sm truncate">Platform Yönetimi</p>
-              <p className="text-[#9CA3AF] text-xs">NailStudio 101 · Süper Admin</p>
+              <p className="text-ink-subtle text-xs">NailStudio 101 · Süper Admin</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/dashboard" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-[#6B1A45] hover:text-[#DB5E9B] px-3 py-2 transition-colors"><ArrowLeft className="w-4 h-4" /> Stüdyo Paneli</Link>
-            <button onClick={signOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B1A45] hover:text-red-500 px-3 py-2 transition-colors"><LogOut className="w-4 h-4" /> Çıkış</button>
+            <Link href="/dashboard" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand px-3 py-2 transition-colors"><ArrowLeft className="w-4 h-4" /> Stüdyo Paneli</Link>
+            <button onClick={signOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-red-500 px-3 py-2 transition-colors"><LogOut className="w-4 h-4" /> Çıkış</button>
           </div>
         </div>
       </header>
@@ -131,32 +131,32 @@ export default function AdminPage() {
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {KPIS.map((k) => (
-            <div key={k.label} className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl p-4 sm:p-5">
+            <div key={k.label} className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
               <div className="flex items-center justify-between">
-                <p className="text-[#9CA3AF] text-xs">{k.label}</p>
-                <div className="w-8 h-8 rounded-lg bg-[#DB5E9B]/10 flex items-center justify-center"><k.icon className="w-4 h-4 text-[#DB5E9B]" /></div>
+                <p className="text-ink-subtle text-xs">{k.label}</p>
+                <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center"><k.icon className="w-4 h-4 text-brand" /></div>
               </div>
               <p className="text-2xl font-bold mt-2 leading-tight">{k.value}</p>
-              <p className="text-[#9CA3AF] text-[11px] mt-0.5">{k.sub}</p>
+              <p className="text-ink-subtle text-[11px] mt-0.5">{k.sub}</p>
             </div>
           ))}
         </div>
 
         {/* Studios / subscriptions */}
-        <section className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#F3E0EB] flex items-center justify-between gap-3">
+        <section className="bg-surface border border-line rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold">Stüdyolar & Abonelikler</h2>
-              <p className="text-[#9CA3AF] text-xs mt-0.5">{tenants.length} stüdyo</p>
+              <p className="text-ink-subtle text-xs mt-0.5">{tenants.length} stüdyo</p>
             </div>
-            <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1.5 bg-[#DB5E9B] hover:bg-[#C84B88] text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors shrink-0">
+            <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-semibold px-3 py-2 rounded-xl transition-colors shrink-0">
               <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Yeni Stüdyo</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
-                <tr className="text-left text-xs text-[#9CA3AF] border-b border-[#F3E0EB]">
+                <tr className="text-left text-xs text-ink-subtle border-b border-line">
                   <th className="px-5 py-3 font-medium">Stüdyo</th>
                   <th className="px-3 py-3 font-medium">Plan</th>
                   <th className="px-3 py-3 font-medium text-center">Müşteri</th>
@@ -166,22 +166,22 @@ export default function AdminPage() {
                   <th className="px-5 py-3 font-medium text-right">Sayfa</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F3E0EB]">
+              <tbody className="divide-y divide-line">
                 {tenants.map((t: any) => (
-                  <tr key={t.id} className="hover:bg-[#FFF5F9] transition-colors">
+                  <tr key={t.id} className="hover:bg-canvas transition-colors">
                     <td className="px-5 py-3">
-                      <Link href={`/admin/studio/${t.id}`} className="font-medium hover:text-[#DB5E9B] transition-colors">{t.name}</Link>
-                      <p className="text-[#9CA3AF] text-xs">/{t.slug}</p>
+                      <Link href={`/admin/studio/${t.id}`} className="font-medium hover:text-brand transition-colors">{t.name}</Link>
+                      <p className="text-ink-subtle text-xs">/{t.slug}</p>
                     </td>
                     <td className="px-3 py-3">
                       <select value={t.subscription_plan} onChange={(e) => updateTenant(t.id, { subscription_plan: e.target.value })}
-                        className="bg-[#FEF0F5] border border-[#F3E0EB] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-[#DB5E9B] cursor-pointer">
+                        className="bg-surface-soft border border-line rounded-lg px-2 py-1.5 text-xs outline-none focus:border-brand cursor-pointer">
                         {Object.entries(PLAN_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                       </select>
                     </td>
                     <td className="px-3 py-3 text-center">{t.customers}</td>
                     <td className="px-3 py-3 text-center">{t.appointments}</td>
-                    <td className="px-3 py-3 text-right text-[#DB5E9B] font-semibold whitespace-nowrap">{formatPrice(t.revenue, "TRY")}</td>
+                    <td className="px-3 py-3 text-right text-brand font-semibold whitespace-nowrap">{formatPrice(t.revenue, "TRY")}</td>
                     <td className="px-3 py-3 text-center">
                       <button onClick={() => updateTenant(t.id, { is_active: !t.is_active })}
                         className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${t.is_active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
@@ -189,7 +189,7 @@ export default function AdminPage() {
                       </button>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <a href={`/book/${t.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#6B1A45] hover:text-[#DB5E9B] text-xs">Aç <ExternalLink className="w-3 h-3" /></a>
+                      <a href={`/book/${t.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink-muted hover:text-brand text-xs">Aç <ExternalLink className="w-3 h-3" /></a>
                     </td>
                   </tr>
                 ))}
@@ -199,15 +199,15 @@ export default function AdminPage() {
         </section>
 
         {/* Users */}
-        <section className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#F3E0EB]">
+        <section className="bg-surface border border-line rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line">
             <h2 className="font-semibold">Kullanıcılar</h2>
-            <p className="text-[#9CA3AF] text-xs mt-0.5">{users.length} hesap</p>
+            <p className="text-ink-subtle text-xs mt-0.5">{users.length} hesap</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
               <thead>
-                <tr className="text-left text-xs text-[#9CA3AF] border-b border-[#F3E0EB]">
+                <tr className="text-left text-xs text-ink-subtle border-b border-line">
                   <th className="px-5 py-3 font-medium">Ad</th>
                   <th className="px-3 py-3 font-medium">E-posta</th>
                   <th className="px-3 py-3 font-medium">Rol</th>
@@ -215,20 +215,20 @@ export default function AdminPage() {
                   <th className="px-5 py-3 font-medium text-right">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F3E0EB]">
+              <tbody className="divide-y divide-line">
                 {users.map((u: any) => (
-                  <tr key={u.id} className="hover:bg-[#FFF5F9] transition-colors">
-                    <td className="px-5 py-3 font-medium whitespace-nowrap">{u.name}{u.id === meId && <span className="text-[#9CA3AF] font-normal"> (siz)</span>}</td>
-                    <td className="px-3 py-3 text-[#6B1A45]">{u.email}</td>
+                  <tr key={u.id} className="hover:bg-canvas transition-colors">
+                    <td className="px-5 py-3 font-medium whitespace-nowrap">{u.name}{u.id === meId && <span className="text-ink-subtle font-normal"> (siz)</span>}</td>
+                    <td className="px-3 py-3 text-ink-muted">{u.email}</td>
                     <td className="px-3 py-3">
                       <select value={u.role} disabled={u.id === meId} onChange={(e) => changeRole(u.id, e.target.value)}
-                        className="bg-[#FEF0F5] border border-[#F3E0EB] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-[#DB5E9B] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        className="bg-surface-soft border border-line rounded-lg px-2 py-1.5 text-xs outline-none focus:border-brand cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                         {Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                       </select>
                     </td>
-                    <td className="px-3 py-3 text-[#6B1A45]">{u.tenant_name}</td>
+                    <td className="px-3 py-3 text-ink-muted">{u.tenant_name}</td>
                     <td className="px-5 py-3 text-right">
-                      <button onClick={() => resetPassword(u.id, u.email)} className="inline-flex items-center gap-1.5 text-xs font-medium text-[#6B1A45] hover:text-[#DB5E9B] border border-[#F3E0EB] hover:border-[#DB5E9B] rounded-lg px-2.5 py-1.5 transition-colors">
+                      <button onClick={() => resetPassword(u.id, u.email)} className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-brand border border-line hover:border-brand rounded-lg px-2.5 py-1.5 transition-colors">
                         <KeyRound className="w-3.5 h-3.5" /> Şifre Sıfırla
                       </button>
                     </td>
@@ -250,8 +250,8 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
   const [form, setForm] = useState({ name: "", slug: "", plan: "baslangic", ownerEmail: "", ownerPassword: "", ownerFirstName: "", ownerLastName: "" });
   const [saving, setSaving] = useState(false);
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const inp = "w-full bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-3 py-2 text-sm text-[#1A0A14] placeholder:text-[#9CA3AF] outline-none focus:border-[#DB5E9B] transition-all";
-  const lbl = "block text-xs font-medium text-[#6B1A45] mb-1";
+  const inp = "w-full bg-surface-soft border border-line rounded-xl px-3 py-2 text-sm text-ink placeholder:text-ink-subtle outline-none focus:border-brand transition-all";
+  const lbl = "block text-xs font-medium text-ink-muted mb-1";
 
   const submit = async () => {
     if (!form.name.trim() || !form.slug.trim()) { toast.error("İsim ve slug zorunlu"); return; }
@@ -270,18 +270,18 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl overflow-hidden animate-slide-up max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F3E0EB] sticky top-0 bg-[#FFFFFF]">
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-xl overflow-hidden animate-slide-up max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-surface">
           <h2 className="font-semibold">Yeni Stüdyo</h2>
-          <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#1A0A14]"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-ink-subtle hover:text-ink"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5 space-y-3">
           <div><label className={lbl}>Stüdyo Adı *</label><input className={inp} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Glamour Nails" /></div>
           <div>
             <label className={lbl}>Slug * (randevu linki)</label>
             <input className={inp} value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="glamour-nails" />
-            <p className="text-[10px] text-[#9CA3AF] mt-1">/book/{form.slug || "slug"}</p>
+            <p className="text-[10px] text-ink-subtle mt-1">/book/{form.slug || "slug"}</p>
           </div>
           <div>
             <label className={lbl}>Plan</label>
@@ -289,8 +289,8 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
               {Object.entries(PLAN_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <div className="pt-2 border-t border-[#F3E0EB]">
-            <p className="text-xs font-semibold text-[#6B1A45] mb-2">Sahip Hesabı (opsiyonel)</p>
+          <div className="pt-2 border-t border-line">
+            <p className="text-xs font-semibold text-ink-muted mb-2">Sahip Hesabı (opsiyonel)</p>
             <div className="grid grid-cols-2 gap-2">
               <input className={inp} value={form.ownerFirstName} onChange={(e) => set("ownerFirstName", e.target.value)} placeholder="Ad" />
               <input className={inp} value={form.ownerLastName} onChange={(e) => set("ownerLastName", e.target.value)} placeholder="Soyad" />
@@ -300,8 +300,8 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
           </div>
         </div>
         <div className="flex gap-3 p-5 pt-0">
-          <button onClick={onClose} className="flex-1 border border-[#F3E0EB] text-[#6B1A45] hover:border-[#DB5E9B] font-medium py-2.5 rounded-xl transition-all">İptal</button>
-          <button onClick={submit} disabled={saving} className="flex-1 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+          <button onClick={onClose} className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl transition-all">İptal</button>
+          <button onClick={submit} disabled={saving} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oluştur"}
           </button>
         </div>
@@ -313,17 +313,17 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
 function ResetResultModal({ data, onClose }: { data: { email: string; password: string }; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl p-6 animate-slide-up text-center">
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-surface border border-line rounded-2xl shadow-xl p-6 animate-slide-up text-center">
         <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-3"><Check className="w-6 h-6 text-green-600" /></div>
-        <h2 className="font-bold text-[#1A0A14]">Geçici şifre oluşturuldu</h2>
-        <p className="text-[#6B1A45] text-sm mt-1">{data.email}</p>
-        <div className="mt-4 flex items-center gap-2 bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-3 py-2.5">
-          <code className="flex-1 text-[#1A0A14] font-mono text-sm break-all text-left">{data.password}</code>
-          <button onClick={() => { navigator.clipboard?.writeText(data.password); toast.success("Kopyalandı"); }} className="text-[#9CA3AF] hover:text-[#DB5E9B] shrink-0"><Copy className="w-4 h-4" /></button>
+        <h2 className="font-bold text-ink">Geçici şifre oluşturuldu</h2>
+        <p className="text-ink-muted text-sm mt-1">{data.email}</p>
+        <div className="mt-4 flex items-center gap-2 bg-surface-soft border border-line rounded-xl px-3 py-2.5">
+          <code className="flex-1 text-ink font-mono text-sm break-all text-left">{data.password}</code>
+          <button onClick={() => { navigator.clipboard?.writeText(data.password); toast.success("Kopyalandı"); }} className="text-ink-subtle hover:text-brand shrink-0"><Copy className="w-4 h-4" /></button>
         </div>
-        <p className="text-[11px] text-[#9CA3AF] mt-3">Bu şifreyi kullanıcıyla paylaşın; ilk girişte değiştirmesini önerin.</p>
-        <button onClick={onClose} className="w-full mt-5 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl transition-colors">Tamam</button>
+        <p className="text-[11px] text-ink-subtle mt-3">Bu şifreyi kullanıcıyla paylaşın; ilk girişte değiştirmesini önerin.</p>
+        <button onClick={onClose} className="w-full mt-5 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-colors">Tamam</button>
       </div>
     </div>
   );

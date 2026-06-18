@@ -116,7 +116,7 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
   }, [tenantId]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-brand animate-spin" /></div>;
   }
 
   const kpiCards = [
@@ -131,21 +131,21 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-display font-bold text-[#1A0A14]">Analitik</h1>
-        <p className="text-[#9CA3AF] mt-1">Stüdyonuzun performans verileri (bu ay)</p>
+        <h1 className="text-2xl font-display font-bold text-ink">Analitik</h1>
+        <p className="text-ink-subtle mt-1">Stüdyonuzun performans verileri (bu ay)</p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {kpiCards.map((stat) => (
-          <div key={stat.label} className="card border border-[#F3E0EB]">
+          <div key={stat.label} className="card border border-line">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg bg-[#DB5E9B]/10 flex items-center justify-center">
-                <stat.icon className="w-4 h-4 text-[#DB5E9B]" />
+              <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                <stat.icon className="w-4 h-4 text-brand" />
               </div>
-              <span className="text-[#9CA3AF] text-sm">{stat.label}</span>
+              <span className="text-ink-subtle text-sm">{stat.label}</span>
             </div>
-            <div className="text-2xl font-bold text-[#1A0A14]">{stat.value}</div>
+            <div className="text-2xl font-bold text-ink">{stat.value}</div>
             {stat.change && (
               <div className={`text-xs mt-1 ${kpis.revenueDelta >= 0 ? "text-green-600" : "text-red-500"}`}>
                 {stat.change} geçen aya göre
@@ -156,14 +156,14 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
       </div>
 
       {empty ? (
-        <div className="card border border-[#F3E0EB] flex items-center justify-center h-64">
-          <p className="text-[#9CA3AF]">Bu ay için henüz veri yok.</p>
+        <div className="card border border-line flex items-center justify-center h-64">
+          <p className="text-ink-subtle">Bu ay için henüz veri yok.</p>
         </div>
       ) : (
         <>
           {/* Revenue trend */}
-          <div className="card border border-[#F3E0EB]">
-            <h3 className="font-semibold text-[#1A0A14] mb-6">Günlük Ciro</h3>
+          <div className="card border border-line">
+            <h3 className="font-semibold text-ink mb-6">Günlük Ciro</h3>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={revenueTrend} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <defs>
@@ -183,8 +183,8 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top services */}
-            <div className="card border border-[#F3E0EB]">
-              <h3 className="font-semibold text-[#1A0A14] mb-6">En Çok Tercih Edilen Hizmetler</h3>
+            <div className="card border border-line">
+              <h3 className="font-semibold text-ink mb-6">En Çok Tercih Edilen Hizmetler</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={topServices} layout="vertical" margin={{ left: 10, right: 16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F3E0EB" horizontal={false} />
@@ -197,8 +197,8 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
             </div>
 
             {/* Status breakdown */}
-            <div className="card border border-[#F3E0EB]">
-              <h3 className="font-semibold text-[#1A0A14] mb-6">Randevu Durumları</h3>
+            <div className="card border border-line">
+              <h3 className="font-semibold text-ink mb-6">Randevu Durumları</h3>
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>
                   <PieChart>
@@ -212,8 +212,8 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
                   {statusData.map((d) => (
                     <div key={d.name} className="flex items-center gap-2 text-sm">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                      <span className="text-[#6B1A45] flex-1">{d.name}</span>
-                      <span className="text-[#1A0A14] font-semibold">{d.value}</span>
+                      <span className="text-ink-muted flex-1">{d.name}</span>
+                      <span className="text-ink font-semibold">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -223,15 +223,15 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
 
           {/* Staff performance */}
           {staffPerf.length > 0 && (
-            <div className="card border border-[#F3E0EB]">
-              <h3 className="font-semibold text-[#1A0A14] mb-4">Personel Performansı (Ciro)</h3>
+            <div className="card border border-line">
+              <h3 className="font-semibold text-ink mb-4">Personel Performansı (Ciro)</h3>
               <div className="space-y-3">
                 {staffPerf.map((s) => {
                   const max = staffPerf[0].revenue || 1;
                   return (
                     <div key={s.name} className="flex items-center gap-3">
-                      <div className="w-28 text-sm text-[#1A0A14] truncate">{s.name}</div>
-                      <div className="flex-1 h-7 bg-[#FEF0F5] rounded-lg overflow-hidden">
+                      <div className="w-28 text-sm text-ink truncate">{s.name}</div>
+                      <div className="flex-1 h-7 bg-surface-soft rounded-lg overflow-hidden">
                         <div className="h-full rounded-lg flex items-center justify-end px-2"
                           style={{ width: `${Math.max((s.revenue / max) * 100, 8)}%`, backgroundColor: s.color }}>
                           <span className="text-[10px] font-semibold text-white">{formatPrice(s.revenue)}</span>
@@ -252,9 +252,9 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
 function RevenueTooltip({ active, payload, label }: any) {
   if (active && payload?.length) {
     return (
-      <div className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-xl p-3 shadow-lg">
-        <p className="text-[#9CA3AF] text-xs mb-1">{label}</p>
-        <p className="text-[#DB5E9B] font-semibold">{formatPrice(payload[0].value)}</p>
+      <div className="bg-surface border border-line rounded-xl p-3 shadow-lg">
+        <p className="text-ink-subtle text-xs mb-1">{label}</p>
+        <p className="text-brand font-semibold">{formatPrice(payload[0].value)}</p>
       </div>
     );
   }
@@ -265,9 +265,9 @@ function CountTooltip({ active, payload }: any) {
   if (active && payload?.length) {
     const p = payload[0];
     return (
-      <div className="bg-[#FFFFFF] border border-[#F3E0EB] rounded-xl p-2.5 shadow-lg text-sm">
-        <span className="text-[#1A0A14] font-medium">{p.payload.name}: </span>
-        <span className="text-[#DB5E9B] font-semibold">{p.value}</span>
+      <div className="bg-surface border border-line rounded-xl p-2.5 shadow-lg text-sm">
+        <span className="text-ink font-medium">{p.payload.name}: </span>
+        <span className="text-brand font-semibold">{p.value}</span>
       </div>
     );
   }

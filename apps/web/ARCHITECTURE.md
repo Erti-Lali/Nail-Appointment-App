@@ -34,10 +34,20 @@ packages/shared/       Web + mobil ortak util/sabit/tip (formatPrice, DAY_LABELS
 Örnek: `components/customers/new-customer-modal.tsx`.
 
 ## Renkler — sabit hex yazma, **token kullan**
-Tema token'ları `tailwind.config.js` içinde tek kaynaktır:
-- `bg-brand` / `hover:bg-brand-dark` / `text-brand` / `bg-brand-soft`
+**Tek kaynak:** `src/app/nailstudio-theme-variables.css` (RGB-kanal CSS değişkenleri,
+örn. `--ns-brand: 219 94 155`). `tailwind.config.js` token'ları bunlara
+`rgb(var(--ns-x) / <alpha-value>)` ile bağlıdır → opacity modifier'ı çalışır
+(`bg-brand/20`). Temayı değiştirmek için sadece o CSS dosyasını düzenle.
+
+Kullan:
+- `bg-brand` / `hover:bg-brand-dark` / `text-brand` / `bg-brand-soft` / `text-brand-light`
 - `bg-surface` (kart), `bg-surface-soft` (input), `bg-canvas` (sayfa)
-- `border-line`, `text-ink` / `text-ink-muted` / `text-ink-subtle`
+- `border-line`, `text-ink` / `text-ink-muted` / `text-ink-subtle`, `bg-overlay` (modal)
+- Doğrudan CSS/inline'da: `rgb(var(--ns-brand))` (tam renk) — `[#hex]` literal YAZMA.
+
+İstisna: recharts grafik renkleri (`analytics-client`) hex kalır — SVG sunum
+attribute'larında `var()` güvenilir çözülmez. Renk-seçici preset dizileri (staff/kategori)
+veri olduğu için hex'tir.
 
 ⚠️ **Footgun:** Bu temada Tailwind `white` = koyu (#1A0A14), `black` = pembe.
 Yani `text-white`/`bg-white`/`bg-black` **beklediğin gibi davranmaz**.

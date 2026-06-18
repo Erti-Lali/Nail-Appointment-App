@@ -52,18 +52,18 @@ export default function PublicBookingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFF5F9]">
-        <Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
+        <Loader2 className="w-8 h-8 text-brand animate-spin" />
       </div>
     );
   }
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF5F9] px-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas px-6 text-center">
         <div className="text-5xl mb-4">💅</div>
-        <h1 className="text-xl font-bold text-[#1A0A14]">Stüdyo bulunamadı</h1>
-        <p className="text-[#9CA3AF] mt-2">
+        <h1 className="text-xl font-bold text-ink">Stüdyo bulunamadı</h1>
+        <p className="text-ink-subtle mt-2">
           &ldquo;{slug}&rdquo; adresinde aktif bir stüdyo yok.
         </p>
       </div>

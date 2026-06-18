@@ -24,10 +24,10 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-brand animate-spin" /></div>;
   }
   if (!tenantId) {
-    return <p className="text-[#9CA3AF]">Stüdyo bağlı değil.</p>;
+    return <p className="text-ink-subtle">Stüdyo bağlı değil.</p>;
   }
   return <AnalyticsClient tenantId={tenantId} />;
 }

@@ -30,11 +30,11 @@ export default function CustomerLoginPage() {
       </Link>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center shadow-gold mb-4"><Sparkles className="w-7 h-7 text-[#FFFFFF]" /></div>
+          <div className="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center shadow-gold mb-4"><Sparkles className="w-7 h-7 text-surface" /></div>
           <h1 className="font-display text-2xl font-bold text-ink">Randevularım</h1>
           <p className="text-ink-subtle text-sm mt-1">Hesabınıza giriş yapın</p>
         </div>
-        <div className="bg-[#FFFFFF] border border-line rounded-2xl p-6 shadow-card">
+        <div className="bg-surface border border-line rounded-2xl p-6 shadow-card">
           <form onSubmit={submit} className="space-y-4">
             <Field label="E-posta"><Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="ornek@mail.com" required /></Field>
             <Field label="Şifre"><Input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} placeholder="••••••••" required /></Field>

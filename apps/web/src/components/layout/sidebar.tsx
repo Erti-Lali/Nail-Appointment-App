@@ -56,7 +56,7 @@ export function Sidebar({ profile, mobileOpen = false, onClose }: SidebarProps) 
       <div
         onClick={onClose}
         className={cn(
-          "fixed inset-0 z-30 bg-[#00000066] backdrop-blur-sm md:hidden transition-opacity",
+          "fixed inset-0 z-30 bg-overlay backdrop-blur-sm md:hidden transition-opacity",
           mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       />

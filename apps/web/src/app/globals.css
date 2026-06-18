@@ -1,53 +1,44 @@
+@import "./nailstudio-theme-variables.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --pink:       #DB5E9B;
-    --pink-light: #F49AC2;
-    --pink-dark:  #C84B88;
-    --bg:         #FFF5F9;
-    --bg-soft:    #FEF0F5;
-    --card:       #FFFFFF;
-    --border:     #F3E0EB;
-    --text:       #1A0A14;
-  }
-
   * {
-    border-color: #F3E0EB;
+    border-color: rgb(var(--ns-line));
     scrollbar-width: thin;
-    scrollbar-color: #F3C0D9 #FFF5F9;
+    scrollbar-color: rgb(var(--ns-scrollbar)) rgb(var(--ns-canvas));
   }
 
   *::-webkit-scrollbar { width: 6px; height: 6px; }
-  *::-webkit-scrollbar-track { background: #FFF5F9; }
-  *::-webkit-scrollbar-thumb { background-color: #F3C0D9; border-radius: 3px; }
-  *::-webkit-scrollbar-thumb:hover { background-color: #DB5E9B; }
+  *::-webkit-scrollbar-track { background: rgb(var(--ns-canvas)); }
+  *::-webkit-scrollbar-thumb { background-color: rgb(var(--ns-scrollbar)); border-radius: 3px; }
+  *::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--ns-brand)); }
 
   html { scroll-behavior: smooth; }
 
   body {
-    background-color: #FFF5F9;
-    color: #1A0A14;
+    background-color: rgb(var(--ns-canvas));
+    color: rgb(var(--ns-ink));
   }
 
   ::selection {
-    background-color: rgba(219, 94, 155, 0.15);
-    color: #1A0A14;
+    background-color: rgb(var(--ns-brand) / 0.15);
+    color: rgb(var(--ns-ink));
   }
 }
 
 @layer components {
   .btn-gold {
-    @apply bg-gold-500 hover:bg-gold-600 text-[#FFFFFF] font-semibold px-6 py-2.5 rounded-xl
+    @apply bg-gold-500 hover:bg-gold-600 text-surface font-semibold px-6 py-2.5 rounded-xl
            transition-all duration-200 shadow-gold hover:shadow-gold-lg
            active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply border border-black-border hover:border-gold-500 text-[#1A0A14]/60 hover:text-gold-600
-           font-medium px-6 py-2.5 rounded-xl transition-all duration-200 bg-[#FFFFFF];
+    @apply border border-black-border hover:border-gold-500 text-ink/60 hover:text-gold-600
+           font-medium px-6 py-2.5 rounded-xl transition-all duration-200 bg-surface;
   }
 
   .card {

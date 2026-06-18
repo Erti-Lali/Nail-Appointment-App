@@ -18,8 +18,8 @@ const TYPES: { id: string; label: string }[] = [
 
 const typeLabel = (t: string) => TYPES.find((x) => x.id === t)?.label ?? t;
 
-const inputCls = "w-full bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-4 py-2.5 text-[#1A0A14] placeholder:text-[#9CA3AF] outline-none focus:border-[#DB5E9B] focus:ring-2 focus:ring-[#DB5E9B]/20 transition-all";
-const labelCls = "block text-sm font-medium text-[#6B1A45] mb-1.5";
+const inputCls = "w-full bg-surface-soft border border-line rounded-xl px-4 py-2.5 text-ink placeholder:text-ink-subtle outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all";
+const labelCls = "block text-sm font-medium text-ink-muted mb-1.5";
 
 export function ContentClient({ tenantId, initialContent }: { tenantId: string; initialContent: any[] }) {
   const supabase = createClient();
@@ -53,24 +53,24 @@ export function ContentClient({ tenantId, initialContent }: { tenantId: string; 
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-[#1A0A14]">İçerik Yönetimi</h1>
-          <p className="text-[#9CA3AF] mt-1">Galeri, kampanya ve duyurularınız</p>
+          <h1 className="text-2xl font-display font-bold text-ink">İçerik Yönetimi</h1>
+          <p className="text-ink-subtle mt-1">Galeri, kampanya ve duyurularınız</p>
         </div>
         <button onClick={() => setShowModal(true)}
-          className="bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2">
+          className="bg-brand hover:bg-brand-dark text-white font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2">
           <Plus className="w-4 h-4" /> Yeni İçerik
         </button>
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="badge bg-[#DB5E9B]/15 text-[#DB5E9B]">{publishedCount} yayında</span>
-        <span className="badge bg-[#F3E0EB] text-[#6B1A45]">{items.length} toplam</span>
+        <span className="badge bg-brand/15 text-brand">{publishedCount} yayında</span>
+        <span className="badge bg-line text-ink-muted">{items.length} toplam</span>
         <div className="flex-1" />
         {[{ id: "all", label: "Tümü" }, ...TYPES].map((t) => (
           <button key={t.id} onClick={() => setFilter(t.id)}
             className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-              filter === t.id ? "bg-[#DB5E9B]/10 border-[#DB5E9B]/40 text-[#DB5E9B]" : "border-[#F3E0EB] text-[#9CA3AF] hover:border-[#DB5E9B]/30")}>
+              filter === t.id ? "bg-brand/10 border-brand/40 text-brand" : "border-line text-ink-subtle hover:border-brand/30")}>
             {t.label}
           </button>
         ))}
@@ -78,48 +78,48 @@ export function ContentClient({ tenantId, initialContent }: { tenantId: string; 
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="card border border-[#F3E0EB] text-center py-16">
-          <ImageIcon className="w-12 h-12 mx-auto mb-4 text-[#DB5E9B]/20" />
-          <p className="text-[#9CA3AF] mb-4">Henüz içerik eklenmemiş</p>
-          <button onClick={() => setShowModal(true)} className="bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold px-4 py-2.5 rounded-xl mx-auto inline-flex items-center gap-2">
+        <div className="card border border-line text-center py-16">
+          <ImageIcon className="w-12 h-12 mx-auto mb-4 text-brand/20" />
+          <p className="text-ink-subtle mb-4">Henüz içerik eklenmemiş</p>
+          <button onClick={() => setShowModal(true)} className="bg-brand hover:bg-brand-dark text-white font-semibold px-4 py-2.5 rounded-xl mx-auto inline-flex items-center gap-2">
             <Plus className="w-4 h-4" /> İlk İçeriği Ekle
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((item) => (
-            <div key={item.id} className="card p-0 overflow-hidden border border-[#F3E0EB] group">
-              <div className="relative aspect-square bg-[#FEF0F5]">
+            <div key={item.id} className="card p-0 overflow-hidden border border-line group">
+              <div className="relative aspect-square bg-surface-soft">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.image_url} alt={item.title ?? ""} className="w-full h-full object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.2"; }} />
-                <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FFFFFF]/90 text-[#6B1A45]">
+                <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface/90 text-ink-muted">
                   {typeLabel(item.type)}
                 </span>
                 {!item.is_published && (
-                  <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1A0A14]/70 text-white">Taslak</span>
+                  <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-ink/70 text-white">Taslak</span>
                 )}
-                <div className="absolute inset-0 bg-[#1A0A14]/0 group-hover:bg-[#1A0A14]/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/40 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <button onClick={() => togglePublish(item)} title={item.is_published ? "Yayından kaldır" : "Yayınla"}
-                    className="w-9 h-9 rounded-lg bg-[#FFFFFF] flex items-center justify-center text-[#6B1A45] hover:text-[#DB5E9B]">
+                    className="w-9 h-9 rounded-lg bg-surface flex items-center justify-center text-ink-muted hover:text-brand">
                     {item.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   {item.link_url && (
                     <a href={item.link_url} target="_blank" rel="noreferrer" title="Bağlantıyı aç"
-                      className="w-9 h-9 rounded-lg bg-[#FFFFFF] flex items-center justify-center text-[#6B1A45] hover:text-[#DB5E9B]">
+                      className="w-9 h-9 rounded-lg bg-surface flex items-center justify-center text-ink-muted hover:text-brand">
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   )}
                   <button onClick={() => remove(item)} title="Sil"
-                    className="w-9 h-9 rounded-lg bg-[#FFFFFF] flex items-center justify-center text-red-500 hover:bg-red-50">
+                    className="w-9 h-9 rounded-lg bg-surface flex items-center justify-center text-red-500 hover:bg-red-50">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               {(item.title || item.description) && (
                 <div className="p-3">
-                  {item.title && <p className="text-sm font-semibold text-[#1A0A14] truncate">{item.title}</p>}
-                  {item.description && <p className="text-xs text-[#9CA3AF] truncate mt-0.5">{item.description}</p>}
+                  {item.title && <p className="text-sm font-semibold text-ink truncate">{item.title}</p>}
+                  {item.description && <p className="text-xs text-ink-subtle truncate mt-0.5">{item.description}</p>}
                 </div>
               )}
             </div>
@@ -167,11 +167,11 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl overflow-hidden animate-slide-up">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F3E0EB]">
-          <h2 className="font-semibold text-[#1A0A14]">Yeni İçerik</h2>
-          <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#1A0A14]"><X className="w-5 h-5" /></button>
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-xl overflow-hidden animate-slide-up">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+          <h2 className="font-semibold text-ink">Yeni İçerik</h2>
+          <button onClick={onClose} className="text-ink-subtle hover:text-ink"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={submit} className="p-5 space-y-4 max-h-[calc(90vh-130px)] overflow-y-auto">
           <div>
@@ -180,7 +180,7 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
               {TYPES.map((t) => (
                 <button key={t.id} type="button" onClick={() => setForm((f) => ({ ...f, type: t.id }))}
                   className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                    form.type === t.id ? "bg-[#DB5E9B]/10 border-[#DB5E9B]/40 text-[#DB5E9B]" : "border-[#F3E0EB] text-[#9CA3AF]")}>
+                    form.type === t.id ? "bg-brand/10 border-brand/40 text-brand" : "border-line text-ink-subtle")}>
                   {t.label}
                 </button>
               ))}
@@ -192,7 +192,7 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
           </div>
           {form.image_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl border border-[#F3E0EB]"
+            <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl border border-line"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           )}
           <div>
@@ -209,12 +209,12 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_published} onChange={(e) => setForm((f) => ({ ...f, is_published: e.target.checked }))}
-              className="w-4 h-4 accent-[#DB5E9B]" />
-            <span className="text-sm text-[#6B1A45]">Hemen yayınla</span>
+              className="w-4 h-4 accent-brand" />
+            <span className="text-sm text-ink-muted">Hemen yayınla</span>
           </label>
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 border border-[#F3E0EB] text-[#6B1A45] hover:border-[#DB5E9B] font-medium py-2.5 rounded-xl bg-[#FFFFFF]">İptal</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+            <button type="button" onClick={onClose} className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl bg-surface">İptal</button>
+            <button type="submit" disabled={loading} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ekle"}
             </button>
           </div>

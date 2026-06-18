@@ -21,7 +21,7 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Use explicit black overlay — bg-black is overridden to pink in this theme. */}
-      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
       <div className={cn("relative w-full bg-surface border border-line rounded-2xl shadow-xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col", WIDTHS[size])}>
         {title && (
           <div className="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">

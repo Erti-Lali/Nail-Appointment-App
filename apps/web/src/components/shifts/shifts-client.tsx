@@ -91,7 +91,7 @@ export function ShiftsClient({ staff }: ShiftsClientProps) {
                         <div className="flex items-center gap-2.5">
                           <div
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-black font-bold text-sm shrink-0"
-                            style={{ backgroundColor: member.color ?? "#DB5E9B" }}
+                            style={{ backgroundColor: member.color ?? "rgb(var(--ns-brand))" }}
                           >
                             {member.display_name.charAt(0)}
                           </div>
@@ -134,7 +134,7 @@ export function ShiftsClient({ staff }: ShiftsClientProps) {
                 <div className="flex items-center gap-2.5 mb-3 pb-3 border-b border-black-border">
                   <div
                     className="w-9 h-9 rounded-lg flex items-center justify-center text-black font-bold shrink-0"
-                    style={{ backgroundColor: member.color ?? "#DB5E9B" }}
+                    style={{ backgroundColor: member.color ?? "rgb(var(--ns-brand))" }}
                   >
                     {member.display_name.charAt(0)}
                   </div>

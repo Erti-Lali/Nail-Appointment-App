@@ -141,7 +141,7 @@ export function WeekCalendar({
                   >
                     <div
                       className="w-7 h-7 rounded-lg flex items-center justify-center text-black text-xs font-bold shrink-0"
-                      style={{ backgroundColor: m.color ?? "#DB5E9B" }}
+                      style={{ backgroundColor: m.color ?? "rgb(var(--ns-brand))" }}
                     >
                       {m.display_name?.charAt(0)}
                     </div>

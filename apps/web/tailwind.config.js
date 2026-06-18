@@ -9,29 +9,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Override white → dark text so text-white reads well on light bg
-        white: "#1A0A14",
+        // All theme colors derive from CSS variables defined in
+        // src/app/nailstudio-theme-variables.css (single source of truth).
+        // The `rgb(var(--x) / <alpha-value>)` form keeps opacity modifiers
+        // (e.g. bg-brand/20) working.
 
-        // Pink palette — used everywhere via gold-* class names
+        // Override white → dark text so text-white reads well on light bg
+        white: "rgb(var(--ns-ink) / <alpha-value>)",
+
+        // Pink palette — legacy gold-* class names (now var-backed)
         gold: {
-          50:  "#FFF0F7",
+          50:  "rgb(var(--ns-brand-soft) / <alpha-value>)",
           100: "#FFD6EC",
           200: "#FFB3D9",
           300: "#FF85C0",
-          400: "#F49AC2",
-          500: "#DB5E9B",   // primary brand pink
-          600: "#C84B88",
+          400: "rgb(var(--ns-brand-light) / <alpha-value>)",
+          500: "rgb(var(--ns-brand) / <alpha-value>)",   // primary brand pink
+          600: "rgb(var(--ns-brand-dark) / <alpha-value>)",
           700: "#9E0E57",
           800: "#7A0940",
           900: "#560529",
         },
 
-        // Light palette — used everywhere via black-* class names
+        // Light palette — legacy black-* class names (now var-backed)
         black: {
-          DEFAULT: "#FFF5F9",  // page background
-          soft:    "#FEF0F5",  // input background
-          card:    "#FFFFFF",  // card background
-          border:  "#F3E0EB",  // borders
+          DEFAULT: "rgb(var(--ns-canvas) / <alpha-value>)",       // page background
+          soft:    "rgb(var(--ns-surface-soft) / <alpha-value>)", // input background
+          card:    "rgb(var(--ns-surface) / <alpha-value>)",      // card background
+          border:  "rgb(var(--ns-line) / <alpha-value>)",         // borders
           muted:   "#E8D0DD",  // muted elements
         },
 
@@ -47,21 +52,23 @@ module.exports = {
         // ── Semantic tokens (single source of truth — prefer these) ──
         // bg-brand, text-brand, hover:bg-brand-dark, bg-brand-soft …
         brand: {
-          DEFAULT: "#DB5E9B", // primary
-          dark:    "#C84B88", // hover/active
-          soft:    "#FFF0F7", // tinted surfaces
+          DEFAULT: "rgb(var(--ns-brand) / <alpha-value>)",
+          dark:    "rgb(var(--ns-brand-dark) / <alpha-value>)",
+          light:   "rgb(var(--ns-brand-light) / <alpha-value>)",
+          soft:    "rgb(var(--ns-brand-soft) / <alpha-value>)",
         },
         surface: {
-          DEFAULT: "#FFFFFF", // cards
-          soft:    "#FEF0F5", // inputs / muted panels
+          DEFAULT: "rgb(var(--ns-surface) / <alpha-value>)",
+          soft:    "rgb(var(--ns-surface-soft) / <alpha-value>)",
         },
-        canvas: "#FFF5F9",    // page background
-        line:   "#F3E0EB",    // borders
+        canvas: "rgb(var(--ns-canvas) / <alpha-value>)",
+        line:   "rgb(var(--ns-line) / <alpha-value>)",
         ink: {
-          DEFAULT: "#1A0A14", // primary text
-          muted:   "#6B1A45", // secondary text
-          subtle:  "#9CA3AF", // tertiary / placeholder
+          DEFAULT: "rgb(var(--ns-ink) / <alpha-value>)",
+          muted:   "rgb(var(--ns-ink-muted) / <alpha-value>)",
+          subtle:  "rgb(var(--ns-ink-subtle) / <alpha-value>)",
         },
+        overlay: "rgb(var(--ns-overlay) / 0.4)",
       },
 
       fontFamily: {
@@ -70,15 +77,15 @@ module.exports = {
       },
 
       backgroundImage: {
-        "gold-gradient":  "linear-gradient(135deg, #DB5E9B 0%, #F49AC2 50%, #DB5E9B 100%)",
-        "dark-gradient":  "linear-gradient(135deg, #FFF5F9 0%, #FFF0F5 100%)",
-        "card-gradient":  "linear-gradient(135deg, #FFFFFF 0%, #FFF5F9 100%)",
+        "gold-gradient":  "linear-gradient(135deg, rgb(var(--ns-brand)) 0%, rgb(var(--ns-brand-light)) 50%, rgb(var(--ns-brand)) 100%)",
+        "dark-gradient":  "linear-gradient(135deg, rgb(var(--ns-canvas)) 0%, rgb(var(--ns-brand-soft)) 100%)",
+        "card-gradient":  "linear-gradient(135deg, rgb(var(--ns-surface)) 0%, rgb(var(--ns-canvas)) 100%)",
       },
 
       boxShadow: {
-        gold:      "0 4px 20px rgba(219, 94, 155, 0.25)",
-        "gold-lg": "0 8px 40px rgba(219, 94, 155, 0.35)",
-        card:      "0 2px 16px rgba(219, 94, 155, 0.06)",
+        gold:      "0 4px 20px rgb(var(--ns-brand) / 0.25)",
+        "gold-lg": "0 8px 40px rgb(var(--ns-brand) / 0.35)",
+        card:      "0 2px 16px rgb(var(--ns-brand) / 0.06)",
       },
 
       animation: {

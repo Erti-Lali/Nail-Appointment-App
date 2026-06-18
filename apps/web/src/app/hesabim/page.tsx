@@ -44,10 +44,10 @@ export default function MyAccountPage() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <header className="sticky top-0 z-20 bg-[#FFFFFF] border-b border-line">
+      <header className="sticky top-0 z-20 bg-surface border-b border-line">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><Sparkles className="w-5 h-5 text-[#FFFFFF]" /></div>
+            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><Sparkles className="w-5 h-5 text-surface" /></div>
             <span className="font-bold text-sm">Randevularım</span>
           </Link>
           <button onClick={signOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-red-500 px-3 py-2 transition-colors">
@@ -63,7 +63,7 @@ export default function MyAccountPage() {
         </div>
 
         {appointments.length === 0 ? (
-          <div className="bg-[#FFFFFF] border border-line rounded-2xl p-8 text-center">
+          <div className="bg-surface border border-line rounded-2xl p-8 text-center">
             <CalendarDays className="w-10 h-10 text-brand/40 mx-auto mb-3" />
             <p className="text-ink-muted">Henüz randevunuz yok.</p>
             <p className="text-ink-subtle text-xs mt-1">
@@ -94,7 +94,7 @@ function Section({ title, items, empty }: { title: string; items: any[]; empty: 
               ? a.appointment_services.map((x: any) => x.service?.name).filter(Boolean)
               : a.service?.name ? [a.service.name] : [];
             return (
-              <div key={a.id} className="bg-[#FFFFFF] border border-line rounded-2xl p-4">
+              <div key={a.id} className="bg-surface border border-line rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 text-sm font-semibold">

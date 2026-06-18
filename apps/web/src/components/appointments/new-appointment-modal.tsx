@@ -162,16 +162,16 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
     setLoading(false);
   };
 
-  const inputCls = "w-full bg-[#FEF0F5] border border-[#F3E0EB] rounded-xl px-4 py-2.5 text-[#1A0A14] placeholder:text-[#9CA3AF] outline-none focus:border-[#DB5E9B] focus:ring-2 focus:ring-[#DB5E9B]/20 transition-all";
-  const labelCls = "block text-sm font-medium text-[#6B1A45] mb-1.5";
+  const inputCls = "w-full bg-surface-soft border border-line rounded-xl px-4 py-2.5 text-ink placeholder:text-ink-subtle outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all";
+  const labelCls = "block text-sm font-medium text-ink-muted mb-1.5";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#00000066] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#FFFFFF] border border-[#F3E0EB] rounded-2xl shadow-xl overflow-hidden animate-slide-up">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#F3E0EB]">
-          <h2 className="font-semibold text-[#1A0A14]">Yeni Randevu</h2>
-          <button onClick={onClose} className="text-[#9CA3AF] hover:text-[#1A0A14] transition-colors"><X className="w-5 h-5" /></button>
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-xl overflow-hidden animate-slide-up">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+          <h2 className="font-semibold text-ink">Yeni Randevu</h2>
+          <button onClick={onClose} className="text-ink-subtle hover:text-ink transition-colors"><X className="w-5 h-5" /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-130px)]">
@@ -179,52 +179,52 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
           <div className="relative">
             <label className={labelCls}>Müşteri *</label>
             {selectedCustomer ? (
-              <div className="flex items-center gap-3 p-3 bg-[#FFF0F7] border border-[#DB5E9B]/30 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-[#DB5E9B]/20 flex items-center justify-center shrink-0">
-                  <span className="text-[#DB5E9B] text-xs font-bold">{selectedCustomer.first_name[0]}{selectedCustomer.last_name?.[0]}</span>
+              <div className="flex items-center gap-3 p-3 bg-brand-soft border border-brand/30 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center shrink-0">
+                  <span className="text-brand text-xs font-bold">{selectedCustomer.first_name[0]}{selectedCustomer.last_name?.[0]}</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-[#1A0A14] text-sm font-medium">{selectedCustomer.first_name} {selectedCustomer.last_name}</p>
-                  <p className="text-[#9CA3AF] text-xs">{selectedCustomer.phone}</p>
+                  <p className="text-ink text-sm font-medium">{selectedCustomer.first_name} {selectedCustomer.last_name}</p>
+                  <p className="text-ink-subtle text-xs">{selectedCustomer.phone}</p>
                 </div>
-                <button type="button" onClick={() => setForm((f) => ({ ...f, customer_id: "" }))} className="text-[#9CA3AF] hover:text-[#1A0A14]"><X className="w-4 h-4" /></button>
+                <button type="button" onClick={() => setForm((f) => ({ ...f, customer_id: "" }))} className="text-ink-subtle hover:text-ink"><X className="w-4 h-4" /></button>
               </div>
             ) : addingCustomer ? (
-              <div className="space-y-2 p-3 bg-[#FFF0F7] border border-[#DB5E9B]/30 rounded-xl">
+              <div className="space-y-2 p-3 bg-brand-soft border border-brand/30 rounded-xl">
                 <div className="grid grid-cols-2 gap-2">
                   <input value={newCust.first_name} onChange={(e) => setNewCust((c) => ({ ...c, first_name: e.target.value }))} placeholder="Ad *" className={inputCls} />
                   <input value={newCust.last_name} onChange={(e) => setNewCust((c) => ({ ...c, last_name: e.target.value }))} placeholder="Soyad" className={inputCls} />
                 </div>
                 <input value={newCust.phone} onChange={(e) => setNewCust((c) => ({ ...c, phone: e.target.value }))} placeholder="Telefon *" type="tel" className={inputCls} />
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setAddingCustomer(false)} className="flex-1 border border-[#F3E0EB] text-[#6B1A45] hover:border-[#DB5E9B] text-sm font-medium py-2 rounded-lg transition-all bg-[#FFFFFF]">İptal</button>
-                  <button type="button" onClick={createCustomer} disabled={creatingCustomer} className="flex-1 bg-[#DB5E9B] hover:bg-[#C84B88] text-white text-sm font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                  <button type="button" onClick={() => setAddingCustomer(false)} className="flex-1 border border-line text-ink-muted hover:border-brand text-sm font-medium py-2 rounded-lg transition-all bg-surface">İptal</button>
+                  <button type="button" onClick={createCustomer} disabled={creatingCustomer} className="flex-1 bg-brand hover:bg-brand-dark text-white text-sm font-semibold py-2 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                     {creatingCustomer ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ekle ve Seç"}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
                 <input type="text" value={customerSearch}
                   onChange={(e) => { setCustomerSearch(e.target.value); setShowCustomerList(true); }}
                   onFocus={() => setShowCustomerList(true)}
                   placeholder="İsim veya telefon ara..."
                   className={inputCls + " pl-9"} />
                 {showCustomerList && customerSearch && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#FFFFFF] border border-[#F3E0EB] rounded-xl overflow-hidden z-10 shadow-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-line rounded-xl overflow-hidden z-10 shadow-lg">
                     {filteredCustomers.length === 0 ? (
-                      <p className="text-[#9CA3AF] text-sm text-center py-4">Müşteri bulunamadı</p>
+                      <p className="text-ink-subtle text-sm text-center py-4">Müşteri bulunamadı</p>
                     ) : filteredCustomers.map((c) => (
                       <button key={c.id} type="button"
                         onClick={() => { setForm((f) => ({ ...f, customer_id: c.id })); setCustomerSearch(""); setShowCustomerList(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#FFF0F7] text-left border-b border-[#F3E0EB] last:border-0">
-                        <div className="w-7 h-7 rounded-full bg-[#DB5E9B]/10 flex items-center justify-center">
-                          <span className="text-[#DB5E9B] text-xs font-bold">{c.first_name[0]}{c.last_name?.[0]}</span>
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-brand-soft text-left border-b border-line last:border-0">
+                        <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center">
+                          <span className="text-brand text-xs font-bold">{c.first_name[0]}{c.last_name?.[0]}</span>
                         </div>
                         <div>
-                          <p className="text-[#1A0A14] text-sm">{c.first_name} {c.last_name}</p>
-                          <p className="text-[#9CA3AF] text-xs">{c.phone}</p>
+                          <p className="text-ink text-sm">{c.first_name} {c.last_name}</p>
+                          <p className="text-ink-subtle text-xs">{c.phone}</p>
                         </div>
                       </button>
                     ))}
@@ -232,7 +232,7 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
                 )}
                 <button type="button"
                   onClick={() => { setAddingCustomer(true); setNewCust((c) => ({ ...c, first_name: customerSearch.trim() || c.first_name })); setShowCustomerList(false); }}
-                  className="mt-2 w-full flex items-center justify-center gap-1.5 text-sm text-[#DB5E9B] hover:text-[#C84B88] font-medium border border-dashed border-[#DB5E9B]/40 hover:border-[#DB5E9B] rounded-xl py-2 transition-all">
+                  className="mt-2 w-full flex items-center justify-center gap-1.5 text-sm text-brand hover:text-brand-dark font-medium border border-dashed border-brand/40 hover:border-brand rounded-xl py-2 transition-all">
                   <UserPlus className="w-4 h-4" /> Yeni müşteri ekle
                 </button>
               </div>
@@ -244,12 +244,12 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
             <label className={labelCls}>
               Hizmetler *{" "}
               {selectedServices.length > 0 && (
-                <span className="text-[#9CA3AF] font-normal">({selectedServices.length} seçili)</span>
+                <span className="text-ink-subtle font-normal">({selectedServices.length} seçili)</span>
               )}
             </label>
-            <div className="max-h-44 overflow-y-auto rounded-xl border border-[#F3E0EB] divide-y divide-[#F3E0EB]">
+            <div className="max-h-44 overflow-y-auto rounded-xl border border-line divide-y divide-line">
               {services.length === 0 ? (
-                <p className="text-[#9CA3AF] text-sm text-center py-4">Hizmet bulunamadı</p>
+                <p className="text-ink-subtle text-sm text-center py-4">Hizmet bulunamadı</p>
               ) : services.map((s) => {
                 const checked = form.service_ids.includes(s.id);
                 return (
@@ -261,13 +261,13 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
                         : [...f.service_ids, s.id],
                     }))}
                     className={cn("w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors",
-                      checked ? "bg-[#FFF0F7]" : "hover:bg-[#FEF0F5]")}>
+                      checked ? "bg-brand-soft" : "hover:bg-surface-soft")}>
                     <span className={cn("w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0",
-                      checked ? "border-[#DB5E9B] bg-[#DB5E9B]" : "border-[#D9B8CB]")}>
+                      checked ? "border-brand bg-brand" : "border-[rgb(var(--ns-line-strong))]")}>
                       {checked && <Check className="w-3 h-3 text-white" />}
                     </span>
-                    <span className="flex-1 min-w-0 text-sm text-[#1A0A14] truncate">{s.name}</span>
-                    <span className="text-xs text-[#9CA3AF] shrink-0 whitespace-nowrap">{s.duration_minutes} dk · ₺{s.price}</span>
+                    <span className="flex-1 min-w-0 text-sm text-ink truncate">{s.name}</span>
+                    <span className="text-xs text-ink-subtle shrink-0 whitespace-nowrap">{s.duration_minutes} dk · ₺{s.price}</span>
                   </button>
                 );
               })}
@@ -299,11 +299,11 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
 
           {/* Summary */}
           {selectedServices.length > 0 && (
-            <div className="bg-[#FFF0F7] border border-[#DB5E9B]/20 rounded-xl p-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-[#9CA3AF]">Hizmet</span><span className="text-[#1A0A14]">{selectedServices.length} adet</span></div>
-              <div className="flex justify-between"><span className="text-[#9CA3AF]">Toplam Süre</span><span className="text-[#1A0A14]">{totalDuration} dk</span></div>
-              <div className="flex justify-between"><span className="text-[#9CA3AF]">Toplam Ücret</span><span className="text-[#DB5E9B] font-semibold">₺{totalPrice}</span></div>
-              {form.time && <div className="flex justify-between"><span className="text-[#9CA3AF]">Bitiş</span><span className="text-[#1A0A14]">{format(addMinutes(new Date(`${form.date}T${form.time}:00`), totalDuration || 0), "HH:mm")}</span></div>}
+            <div className="bg-brand-soft border border-brand/20 rounded-xl p-3 space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-ink-subtle">Hizmet</span><span className="text-ink">{selectedServices.length} adet</span></div>
+              <div className="flex justify-between"><span className="text-ink-subtle">Toplam Süre</span><span className="text-ink">{totalDuration} dk</span></div>
+              <div className="flex justify-between"><span className="text-ink-subtle">Toplam Ücret</span><span className="text-brand font-semibold">₺{totalPrice}</span></div>
+              {form.time && <div className="flex justify-between"><span className="text-ink-subtle">Bitiş</span><span className="text-ink">{format(addMinutes(new Date(`${form.date}T${form.time}:00`), totalDuration || 0), "HH:mm")}</span></div>}
             </div>
           )}
 
@@ -323,7 +323,7 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
                 return (
                   <button key={src} type="button" onClick={() => setForm((f) => ({ ...f, booked_via: src }))}
                     className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                      form.booked_via === src ? "bg-[#DB5E9B]/10 border-[#DB5E9B]/40 text-[#DB5E9B]" : "border-[#F3E0EB] text-[#9CA3AF] hover:border-[#DB5E9B]/30 hover:text-[#DB5E9B]")}>
+                      form.booked_via === src ? "bg-brand/10 border-brand/40 text-brand" : "border-line text-ink-subtle hover:border-brand/30 hover:text-brand")}>
                     {labels[src]}
                   </button>
                 );
@@ -340,8 +340,8 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 border border-[#F3E0EB] text-[#6B1A45] hover:border-[#DB5E9B] font-medium py-2.5 rounded-xl transition-all bg-[#FFFFFF]">İptal</button>
-            <button type="submit" disabled={loading || hasConflict} className="flex-1 bg-[#DB5E9B] hover:bg-[#C84B88] text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="button" onClick={onClose} className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl transition-all bg-surface">İptal</button>
+            <button type="submit" disabled={loading || hasConflict} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Randevu Oluştur"}
             </button>
           </div>

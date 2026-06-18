@@ -104,7 +104,7 @@ export function StaffClient({ staff: initialStaff, services, tenantId }: StaffCl
 
       {/* Detail panel — full-screen overlay on mobile, side panel on desktop */}
       {selected && (
-        <div className="fixed inset-0 z-40 p-4 bg-[#FFF5F9] overflow-y-auto animate-slide-up
+        <div className="fixed inset-0 z-40 p-4 bg-canvas overflow-y-auto animate-slide-up
                         md:static md:z-auto md:p-0 md:bg-transparent md:flex-1 md:overflow-hidden">
           <StaffDetailPanel
             staff={selected}

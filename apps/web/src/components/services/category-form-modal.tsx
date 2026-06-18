@@ -63,7 +63,7 @@ export function CategoryFormModal({ tenantId, onClose, onSuccess }: Props) {
             {PRESET_COLORS.map((color) => (
               <button key={color} type="button" onClick={() => setForm((f) => ({ ...f, color }))}
                 className="w-8 h-8 rounded-lg transition-all hover:scale-110"
-                style={{ backgroundColor: color, outline: form.color === color ? "2px solid #DB5E9B" : "none", outlineOffset: "2px" }} />
+                style={{ backgroundColor: color, outline: form.color === color ? "2px solid rgb(var(--ns-brand))" : "none", outlineOffset: "2px" }} />
             ))}
           </div>
         </Field>

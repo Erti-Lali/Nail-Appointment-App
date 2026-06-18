@@ -1,0 +1,32 @@
+/* ─────────────────────────────────────────────────────────────
+   NailStudio 101 — Tema renk değişkenleri (TEK KAYNAK)
+   Değerler RGB-kanal üçlüsü olarak tutulur ("R G B"), böylece hem
+   Tailwind token'larında `rgb(var(--ns-x) / <alpha-value>)` ile
+   opacity modifier'ı (örn. bg-brand/20) çalışır, hem de doğrudan
+   CSS/inline'da `rgb(var(--ns-x))` olarak kullanılabilir.
+
+   Marka temasını değiştirmek için SADECE bu dosyayı düzenleyin.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --ns-brand:        219 94 155;   /* #DB5E9B  birincil pembe   */
+  --ns-brand-dark:   200 75 136;   /* #C84B88  hover/active      */
+  --ns-brand-light:  244 154 194;  /* #F49AC2  açık vurgu        */
+  --ns-brand-soft:   255 240 247;  /* #FFF0F7  tonlu yüzey       */
+
+  --ns-surface:      255 255 255;  /* #FFFFFF  kart              */
+  --ns-surface-soft: 254 240 245;  /* #FEF0F5  input / panel     */
+  --ns-canvas:       255 245 249;  /* #FFF5F9  sayfa arka planı  */
+  --ns-line:         243 224 235;  /* #F3E0EB  kenarlık          */
+
+  --ns-ink:          26 10 20;     /* #1A0A14  birincil metin    */
+  --ns-ink-muted:    107 26 69;    /* #6B1A45  ikincil metin     */
+  --ns-ink-subtle:   156 163 175;  /* #9CA3AF  placeholder       */
+
+  --ns-overlay:      0 0 0;        /* modal arka plan (örn. /40) */
+
+  /* İnce pembe tonlar (scrollbar / devre dışı durumlar) */
+  --ns-scrollbar:    243 192 217;  /* #F3C0D9 */
+  --ns-slot-taken-bg:251 233 241;  /* #FBE9F1 */
+  --ns-slot-taken-fg:217 168 194;  /* #D9A8C2 */
+  --ns-line-strong:  217 184 203;  /* #D9B8CB  belirgin kenarlık (checkbox) */
+}

@@ -41,11 +41,11 @@ export default function CustomerRegisterPage() {
       </Link>
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center shadow-gold mb-4"><Sparkles className="w-7 h-7 text-[#FFFFFF]" /></div>
+          <div className="w-14 h-14 rounded-2xl bg-brand flex items-center justify-center shadow-gold mb-4"><Sparkles className="w-7 h-7 text-surface" /></div>
           <h1 className="font-display text-2xl font-bold text-ink">Hesap Oluştur</h1>
           <p className="text-ink-subtle text-sm mt-1">Randevularınızı tek yerden takip edin</p>
         </div>
-        <div className="bg-[#FFFFFF] border border-line rounded-2xl p-6 shadow-card">
+        <div className="bg-surface border border-line rounded-2xl p-6 shadow-card">
           <form onSubmit={submit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Ad"><Input value={form.firstName} onChange={(e) => set("firstName", e.target.value)} placeholder="Ayşe" required /></Field>

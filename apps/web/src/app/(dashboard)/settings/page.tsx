@@ -39,7 +39,7 @@ export default function SettingsPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-[#DB5E9B] animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-brand animate-spin" /></div>;
   }
 
   return <SettingsClient {...data} />;
