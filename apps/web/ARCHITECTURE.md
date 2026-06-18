@@ -63,6 +63,7 @@ Service-role doğrulaması `@/lib/admin-auth`'tadır:
 `adminClient()` + `verifySuperAdmin(req, admin)`. Her admin endpoint önce bunu çağırır.
 
 ## Süregelen refactor (TODO)
-Eski bileşenler aşamalı olarak UI kit + token + tip'e taşınacak:
-modaller (new-appointment, new-staff, service-form…), tablo/sayfa renkleri (`#DB5E9B`→`brand`),
+UI kit'e taşınanlar: `new-customer-modal`, `category-form-modal`, `new-staff-modal`.
+Kalan: `new-appointment-modal`, `service-form-modal`, `appointment-detail-modal`,
+admin sayfa içi modalleri; tablo/sayfa sabit hex renkleri → `brand`/`surface`/`ink` token;
 sayfaların `getSession→profile→tenantId` bloğu → `useTenantId`.
