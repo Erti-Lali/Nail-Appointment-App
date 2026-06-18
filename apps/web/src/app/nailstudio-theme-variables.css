@@ -1,5 +1,7 @@
 /* ─────────────────────────────────────────────────────────────
    NailStudio 101 — Tema renk değişkenleri (TEK KAYNAK)
+   Palet: Aviora "NailStudio 101 — Design Tokens"
+
    Değerler RGB-kanal üçlüsü olarak tutulur ("R G B"), böylece hem
    Tailwind token'larında `rgb(var(--ns-x) / <alpha-value>)` ile
    opacity modifier'ı (örn. bg-brand/20) çalışır, hem de doğrudan
@@ -8,19 +10,19 @@
    Marka temasını değiştirmek için SADECE bu dosyayı düzenleyin.
    ───────────────────────────────────────────────────────────── */
 :root {
-  --ns-brand:        219 94 155;   /* #DB5E9B  birincil pembe   */
-  --ns-brand-dark:   200 75 136;   /* #C84B88  hover/active      */
-  --ns-brand-light:  244 154 194;  /* #F49AC2  açık vurgu        */
-  --ns-brand-soft:   255 240 247;  /* #FFF0F7  tonlu yüzey       */
+  --ns-brand:        233 30 140;   /* #E91E8C  birincil pembe (rose-primary)   */
+  --ns-brand-dark:   209 24 125;   /* #D1187D  hover/active (gradient-hover)    */
+  --ns-brand-light:  255 107 166;  /* #FF6BA6  açık vurgu (rose-light)          */
+  --ns-brand-soft:   255 233 242;  /* #FFE9F2  tonlu yüzey (chip/badge)         */
 
-  --ns-surface:      255 255 255;  /* #FFFFFF  kart              */
-  --ns-surface-soft: 254 240 245;  /* #FEF0F5  input / panel     */
-  --ns-canvas:       255 245 249;  /* #FFF5F9  sayfa arka planı  */
-  --ns-line:         243 224 235;  /* #F3E0EB  kenarlık          */
+  --ns-surface:      255 255 255;  /* #FFFFFF  kart (card)                      */
+  --ns-surface-soft: 254 240 245;  /* #FEF0F5  input / panel (input-bg)         */
+  --ns-canvas:       255 245 249;  /* #FFF5F9  sayfa arka planı (page-bg)       */
+  --ns-line:         243 224 235;  /* #F3E0EB  kenarlık (border)                */
 
-  --ns-ink:          26 10 20;     /* #1A0A14  birincil metin    */
-  --ns-ink-muted:    107 26 69;    /* #6B1A45  ikincil metin     */
-  --ns-ink-subtle:   156 163 175;  /* #9CA3AF  placeholder       */
+  --ns-ink:          26 10 20;     /* #1A0A14  birincil metin (text-primary)    */
+  --ns-ink-muted:    107 74 94;    /* #6B4A5E  ikincil metin (text-secondary)   */
+  --ns-ink-subtle:   155 122 142;  /* #9B7A8E  placeholder (text-muted)         */
 
   --ns-overlay:      0 0 0;        /* modal arka plan (örn. /40) */
 

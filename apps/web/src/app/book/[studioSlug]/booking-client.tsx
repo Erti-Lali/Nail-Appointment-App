@@ -269,7 +269,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
                 className={cn("w-full flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all bg-surface",
                   staffId === m.id ? "border-brand ring-2 ring-brand/15" : "border-line hover:border-brand/40")}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold shrink-0 overflow-hidden"
-                  style={{ backgroundColor: `${m.color ?? "#DB5E9B"}20`, color: m.color ?? "#DB5E9B" }}>
+                  style={{ backgroundColor: `${m.color ?? "#E91E8C"}20`, color: m.color ?? "#E91E8C" }}>
                   {m.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.avatar_url} alt={m.display_name} className="w-full h-full object-cover" />

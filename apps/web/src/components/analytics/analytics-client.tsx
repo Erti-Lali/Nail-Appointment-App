@@ -13,14 +13,14 @@ import { tr } from "date-fns/locale";
 import { DollarSign, Calendar, Users, TrendingUp, Loader2 } from "lucide-react";
 import { formatPrice } from "@nailstudio/shared";
 
-const PINK = "#DB5E9B";
+const PINK = "#E91E8C";
 const STATUS_META: Record<string, { label: string; color: string }> = {
   completed: { label: "Tamamlandı", color: "#22C55E" },
-  confirmed: { label: "Onaylandı", color: "#DB5E9B" },
+  confirmed: { label: "Onaylandı", color: "#E91E8C" },
   pending: { label: "Bekliyor", color: "#F59E0B" },
   in_progress: { label: "Devam ediyor", color: "#3B82F6" },
   canceled: { label: "İptal", color: "#EF4444" },
-  no_show: { label: "Gelmedi", color: "#9CA3AF" },
+  no_show: { label: "Gelmedi", color: "#9B7A8E" },
 };
 
 export function AnalyticsClient({ tenantId }: { tenantId: string }) {
@@ -97,7 +97,7 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
       setStatusData([...statusMap.entries()].map(([status, value]) => ({
         name: STATUS_META[status]?.label ?? status,
         value,
-        color: STATUS_META[status]?.color ?? "#9CA3AF",
+        color: STATUS_META[status]?.color ?? "#9B7A8E",
       })));
 
       // Staff performance (revenue, this month)
@@ -173,8 +173,8 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3E0EB" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₺${v}`} />
+                <XAxis dataKey="date" tick={{ fill: "#9B7A8E", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#9B7A8E", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₺${v}`} />
                 <Tooltip content={<RevenueTooltip />} />
                 <Area type="monotone" dataKey="revenue" stroke={PINK} strokeWidth={2} fill="url(#pinkGrad)" />
               </AreaChart>
@@ -188,9 +188,9 @@ export function AnalyticsClient({ tenantId }: { tenantId: string }) {
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={topServices} layout="vertical" margin={{ left: 10, right: 16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F3E0EB" horizontal={false} />
-                  <XAxis type="number" tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" width={110} tick={{ fill: "#6B1A45", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: "#FFF0F7" }} content={<CountTooltip />} />
+                  <XAxis type="number" tick={{ fill: "#9B7A8E", fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={110} tick={{ fill: "#6B4A5E", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: "#FFE9F2" }} content={<CountTooltip />} />
                   <Bar dataKey="count" fill={PINK} radius={[0, 6, 6, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
