@@ -14,13 +14,14 @@ import { DollarSign, Calendar, Users, TrendingUp, Loader2 } from "lucide-react";
 import { formatPrice } from "@nailstudio/shared";
 
 const PINK = "#E91E8C";
+// Recharts'a verilen hex'ler (SVG attribute'larında var() güvenilmez) — Aviora durum paleti.
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  completed: { label: "Tamamlandı", color: "#22C55E" },
-  confirmed: { label: "Onaylandı", color: "#E91E8C" },
+  completed: { label: "Tamamlandı", color: "#6B7280" },
+  confirmed: { label: "Onaylandı", color: "#16A34A" },
   pending: { label: "Bekliyor", color: "#F59E0B" },
-  in_progress: { label: "Devam ediyor", color: "#3B82F6" },
-  canceled: { label: "İptal", color: "#EF4444" },
-  no_show: { label: "Gelmedi", color: "#9B7A8E" },
+  in_progress: { label: "Devam ediyor", color: "#2563EB" },
+  canceled: { label: "İptal", color: "#DC2626" },
+  no_show: { label: "Gelmedi", color: "#8B5CF6" },
 };
 
 export function AnalyticsClient({ tenantId }: { tenantId: string }) {

@@ -15,12 +15,12 @@ const STAFF_W = 130; // left label column width (px)
 const TRACK_MIN = 760; // min width of the time track → scrolls on small screens
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  pending:     { bg: "bg-amber-500/20",  border: "border-amber-500/40",  text: "text-amber-300" },
-  confirmed:   { bg: "bg-green-500/20",  border: "border-green-500/40",  text: "text-green-300" },
-  in_progress: { bg: "bg-blue-500/20",   border: "border-blue-500/40",   text: "text-blue-300" },
-  completed:   { bg: "bg-gray-500/20",   border: "border-gray-500/30",   text: "text-gray-400" },
-  canceled:    { bg: "bg-red-500/10",    border: "border-red-500/20",    text: "text-red-400" },
-  no_show:     { bg: "bg-pink-500/10",   border: "border-pink-500/20",   text: "text-pink-400" },
+  pending:     { bg: "bg-[rgb(var(--ns-warning))]/15", border: "border-[rgb(var(--ns-warning))]/40", text: "text-[rgb(var(--ns-warning))]" },
+  confirmed:   { bg: "bg-[rgb(var(--ns-success))]/15", border: "border-[rgb(var(--ns-success))]/40", text: "text-[rgb(var(--ns-success))]" },
+  in_progress: { bg: "bg-[rgb(var(--ns-info))]/15",    border: "border-[rgb(var(--ns-info))]/40",    text: "text-[rgb(var(--ns-info))]" },
+  completed:   { bg: "bg-[rgb(var(--ns-neutral))]/15", border: "border-[rgb(var(--ns-neutral))]/30", text: "text-[rgb(var(--ns-neutral))]" },
+  canceled:    { bg: "bg-[rgb(var(--ns-danger))]/10",  border: "border-[rgb(var(--ns-danger))]/20",  text: "text-[rgb(var(--ns-danger))]" },
+  no_show:     { bg: "bg-[rgb(var(--ns-noshow))]/10",  border: "border-[rgb(var(--ns-noshow))]/20",  text: "text-[rgb(var(--ns-noshow))]" },
 };
 
 interface WeekCalendarProps {

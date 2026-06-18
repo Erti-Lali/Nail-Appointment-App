@@ -3,13 +3,14 @@ import type { Enum } from "@/lib/database.types";
 // Single source for user-facing labels & badge styles. Import these instead of
 // re-declaring the maps in each component.
 
+// Badge classes derive from the Aviora status variables (light bg + base text).
 export const APPOINTMENT_STATUS: Record<Enum<"appointment_status">, { label: string; badge: string }> = {
-  pending:     { label: "Bekliyor",    badge: "bg-amber-100 text-amber-700" },
-  confirmed:   { label: "Onaylı",      badge: "bg-green-100 text-green-700" },
-  in_progress: { label: "Devam Ediyor", badge: "bg-blue-100 text-blue-700" },
-  completed:   { label: "Tamamlandı",  badge: "bg-gray-100 text-gray-600" },
-  canceled:    { label: "İptal",       badge: "bg-red-100 text-red-700" },
-  no_show:     { label: "Gelmedi",     badge: "bg-pink-100 text-pink-700" },
+  pending:     { label: "Bekliyor",    badge: "bg-[rgb(var(--ns-warning-light))] text-[rgb(var(--ns-warning))]" },
+  confirmed:   { label: "Onaylı",      badge: "bg-[rgb(var(--ns-success-light))] text-[rgb(var(--ns-success))]" },
+  in_progress: { label: "Devam Ediyor", badge: "bg-[rgb(var(--ns-info-light))] text-[rgb(var(--ns-info))]" },
+  completed:   { label: "Tamamlandı",  badge: "bg-[rgb(var(--ns-neutral-light))] text-[rgb(var(--ns-neutral))]" },
+  canceled:    { label: "İptal",       badge: "bg-[rgb(var(--ns-danger-light))] text-[rgb(var(--ns-danger))]" },
+  no_show:     { label: "Gelmedi",     badge: "bg-[rgb(var(--ns-noshow-light))] text-[rgb(var(--ns-noshow))]" },
 };
 
 export const USER_ROLE_LABELS: Record<Enum<"user_role">, string> = {

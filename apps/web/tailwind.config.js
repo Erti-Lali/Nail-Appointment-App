@@ -41,12 +41,12 @@ module.exports = {
         },
 
         status: {
-          pending:    "#F59E0B",
-          confirmed:  "#22C55E",
-          inProgress: "#3B82F6",
-          completed:  "#6B7280",
-          canceled:   "#EF4444",
-          noShow:     "#EC4899",
+          pending:    "rgb(var(--ns-warning) / <alpha-value>)",
+          confirmed:  "rgb(var(--ns-success) / <alpha-value>)",
+          inProgress: "rgb(var(--ns-info) / <alpha-value>)",
+          completed:  "rgb(var(--ns-neutral) / <alpha-value>)",
+          canceled:   "rgb(var(--ns-danger) / <alpha-value>)",
+          noShow:     "rgb(var(--ns-noshow) / <alpha-value>)",
         },
 
         // ── Semantic tokens (single source of truth — prefer these) ──

@@ -26,6 +26,20 @@
 
   --ns-overlay:      0 0 0;        /* modal arka plan (örn. /40) */
 
+  /* ── Durum renkleri (Aviora) — base + light ── */
+  --ns-success:        22 163 74;   /* #16A34A  onaylı           */
+  --ns-success-light:  220 252 231; /* #DCFCE7 */
+  --ns-warning:        245 158 11;  /* #F59E0B  bekliyor         */
+  --ns-warning-light:  254 243 199; /* #FEF3C7 */
+  --ns-danger:         220 38 38;   /* #DC2626  iptal            */
+  --ns-danger-light:   254 226 226; /* #FEE2E2 */
+  --ns-info:           37 99 235;   /* #2563EB  devam ediyor     */
+  --ns-info-light:     219 234 254; /* #DBEAFE */
+  --ns-noshow:         139 92 246;  /* #8B5CF6  gelmedi          */
+  --ns-noshow-light:   237 233 254; /* #EDE9FE */
+  --ns-neutral:        107 114 128; /* #6B7280  tamamlandı       */
+  --ns-neutral-light:  243 244 246; /* #F3F4F6 */
+
   /* İnce pembe tonlar (scrollbar / devre dışı durumlar) */
   --ns-scrollbar:    243 192 217;  /* #F3C0D9 */
   --ns-slot-taken-bg:251 233 241;  /* #FBE9F1 */

@@ -81,12 +81,12 @@
     @apply text-gold-600 bg-gold-100 font-medium;
   }
 
-  .status-pending     { @apply badge bg-amber-100  text-amber-700;  }
-  .status-confirmed   { @apply badge bg-green-100  text-green-700;  }
-  .status-in_progress { @apply badge bg-blue-100   text-blue-700;   }
-  .status-completed   { @apply badge bg-gray-100   text-gray-600;   }
-  .status-canceled    { @apply badge bg-red-100    text-red-700;    }
-  .status-no_show     { @apply badge bg-pink-100   text-pink-700;   }
+  .status-pending     { @apply badge; background-color: rgb(var(--ns-warning-light)); color: rgb(var(--ns-warning)); }
+  .status-confirmed   { @apply badge; background-color: rgb(var(--ns-success-light)); color: rgb(var(--ns-success)); }
+  .status-in_progress { @apply badge; background-color: rgb(var(--ns-info-light));    color: rgb(var(--ns-info));    }
+  .status-completed   { @apply badge; background-color: rgb(var(--ns-neutral-light)); color: rgb(var(--ns-neutral)); }
+  .status-canceled    { @apply badge; background-color: rgb(var(--ns-danger-light));  color: rgb(var(--ns-danger));  }
+  .status-no_show     { @apply badge; background-color: rgb(var(--ns-noshow-light));  color: rgb(var(--ns-noshow));  }
 }
 
 @layer utilities {

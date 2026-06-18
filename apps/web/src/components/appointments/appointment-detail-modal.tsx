@@ -12,12 +12,12 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 const STATUSES = [
-  { value: "pending",     label: "Bekliyor",       icon: AlertCircle,   color: "text-amber-400" },
-  { value: "confirmed",   label: "Onayla",         icon: CheckCircle2,  color: "text-green-400" },
-  { value: "in_progress", label: "Başladı",        icon: RotateCcw,     color: "text-blue-400" },
-  { value: "completed",   label: "Tamamlandı",     icon: CheckCircle2,  color: "text-gray-400" },
-  { value: "canceled",    label: "İptal Et",       icon: XCircle,       color: "text-red-400" },
-  { value: "no_show",     label: "Gelmedi",        icon: XCircle,       color: "text-pink-400" },
+  { value: "pending",     label: "Bekliyor",       icon: AlertCircle,   color: "text-[rgb(var(--ns-warning))]" },
+  { value: "confirmed",   label: "Onayla",         icon: CheckCircle2,  color: "text-[rgb(var(--ns-success))]" },
+  { value: "in_progress", label: "Başladı",        icon: RotateCcw,     color: "text-[rgb(var(--ns-info))]" },
+  { value: "completed",   label: "Tamamlandı",     icon: CheckCircle2,  color: "text-[rgb(var(--ns-neutral))]" },
+  { value: "canceled",    label: "İptal Et",       icon: XCircle,       color: "text-[rgb(var(--ns-danger))]" },
+  { value: "no_show",     label: "Gelmedi",        icon: XCircle,       color: "text-[rgb(var(--ns-noshow))]" },
 ] as const;
 
 interface AppointmentDetailModalProps {

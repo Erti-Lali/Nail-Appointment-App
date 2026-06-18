@@ -17,9 +17,12 @@ const STATUS_LABELS: Record<string, string> = {
   completed: "Tamamlandı", canceled: "İptal", no_show: "Gelmedi",
 };
 const STATUS_CLS: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700", confirmed: "bg-green-100 text-green-700",
-  in_progress: "bg-blue-100 text-blue-700", completed: "bg-gray-100 text-gray-600",
-  canceled: "bg-red-100 text-red-700", no_show: "bg-pink-100 text-pink-700",
+  pending: "bg-[rgb(var(--ns-warning-light))] text-[rgb(var(--ns-warning))]",
+  confirmed: "bg-[rgb(var(--ns-success-light))] text-[rgb(var(--ns-success))]",
+  in_progress: "bg-[rgb(var(--ns-info-light))] text-[rgb(var(--ns-info))]",
+  completed: "bg-[rgb(var(--ns-neutral-light))] text-[rgb(var(--ns-neutral))]",
+  canceled: "bg-[rgb(var(--ns-danger-light))] text-[rgb(var(--ns-danger))]",
+  no_show: "bg-[rgb(var(--ns-noshow-light))] text-[rgb(var(--ns-noshow))]",
 };
 
 export default function StudioDetailPage() {
