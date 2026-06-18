@@ -41,15 +41,48 @@ export async function GET(request: NextRequest) {
     { auth: { persistSession: false } }
   );
 
-  const { data } = await supabase
-    .from("appointments")
-    .select("starts_at, ends_at")
-    .eq("staff_id", staffId)
-    .gte("starts_at", `${date}T00:00:00`)
-    .lte("starts_at", `${date}T23:59:59`)
-    .not("status", "in", "(canceled,no_show)");
+  const DOW = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  // Parse date as a plain Y-M-D so the weekday isn't shifted by server timezone.
+  const [y, m, d] = date.split("-").map(Number);
+  const dayKey = DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
 
-  return NextResponse.json({ busy: data ?? [] });
+  const [busyRes, hoursRes, offRes] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("starts_at, ends_at")
+      .eq("staff_id", staffId)
+      .gte("starts_at", `${date}T00:00:00`)
+      .lte("starts_at", `${date}T23:59:59`)
+      .not("status", "in", "(canceled,no_show)"),
+    supabase
+      .from("staff_working_hours")
+      .select("is_working, start_time, end_time, break_start, break_end")
+      .eq("staff_id", staffId)
+      .eq("day_of_week", dayKey)
+      .maybeSingle(),
+    supabase
+      .from("staff_time_off")
+      .select("id")
+      .eq("staff_id", staffId)
+      .lte("start_date", date)
+      .gte("end_date", date)
+      .limit(1),
+  ]);
+
+  const wh = hoursRes.data;
+  const onLeave = (offRes.data?.length ?? 0) > 0;
+  // Working window: null when staff is off that day or on leave.
+  const workingHours =
+    onLeave || !wh || wh.is_working === false || !wh.start_time || !wh.end_time
+      ? null
+      : {
+          start: wh.start_time.slice(0, 5),
+          end: wh.end_time.slice(0, 5),
+          breakStart: wh.break_start ? wh.break_start.slice(0, 5) : null,
+          breakEnd: wh.break_end ? wh.break_end.slice(0, 5) : null,
+        };
+
+  return NextResponse.json({ busy: busyRes.data ?? [], workingHours, onLeave });
 }
 
 export async function POST(request: NextRequest) {
