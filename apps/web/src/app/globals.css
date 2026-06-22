@@ -1,8 +1,8 @@
-@import "./nailstudio-theme-variables.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import "./nailstudio-theme-variables.css";
 
 @layer base {
   * {
@@ -11,7 +11,7 @@
     scrollbar-color: rgb(var(--ns-scrollbar)) rgb(var(--ns-canvas));
   }
 
-  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar { width: 5px; height: 5px; }
   *::-webkit-scrollbar-track { background: rgb(var(--ns-canvas)); }
   *::-webkit-scrollbar-thumb { background-color: rgb(var(--ns-scrollbar)); border-radius: 3px; }
   *::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--ns-brand)); }
@@ -21,6 +21,7 @@
   body {
     background-color: rgb(var(--ns-canvas));
     color: rgb(var(--ns-ink));
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 
   ::selection {
@@ -30,63 +31,115 @@
 }
 
 @layer components {
+  /* ── Butonlar ── */
   .btn-gold {
-    @apply bg-gold-500 hover:bg-gold-600 text-surface font-semibold px-6 py-2.5 rounded-xl
-           transition-all duration-200 shadow-gold hover:shadow-gold-lg
+    @apply font-medium px-6 py-2.5 rounded-xl
+           transition-all duration-200
            active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, rgb(var(--ns-brand)) 0%, rgb(var(--ns-brand-dark)) 100%);
+    color: #FFFFFF;
+    box-shadow: 0 4px 16px rgb(var(--ns-brand) / 0.28);
+  }
+  .btn-gold:hover {
+    box-shadow: 0 6px 24px rgb(var(--ns-brand) / 0.38);
+    filter: brightness(1.06);
   }
 
   .btn-ghost {
-    @apply border border-black-border hover:border-gold-500 text-ink/60 hover:text-gold-600
-           font-medium px-6 py-2.5 rounded-xl transition-all duration-200 bg-surface;
+    @apply border font-medium px-6 py-2.5 rounded-xl transition-all duration-200;
+    border-color: rgb(var(--ns-line));
+    color: rgb(var(--ns-ink-muted));
+    background: #FFFFFF;
+  }
+  .btn-ghost:hover {
+    border-color: rgb(var(--ns-brand));
+    color: rgb(var(--ns-brand));
   }
 
+  /* ── Kart ── */
   .card {
-    @apply bg-black-card border border-black-border rounded-2xl p-4 sm:p-6 shadow-card;
+    background: rgb(var(--ns-surface));
+    border: 1px solid rgb(var(--ns-line));
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 16px rgb(var(--ns-brand) / 0.04);
   }
 
   .card-hover {
-    @apply card hover:border-gold-500/40 hover:shadow-gold transition-all duration-200 cursor-pointer;
+    @apply card transition-all duration-200 cursor-pointer;
+  }
+  .card-hover:hover {
+    border-color: rgb(var(--ns-brand) / 0.35);
+    box-shadow: 0 4px 24px rgb(var(--ns-brand) / 0.10);
+    transform: translateY(-1px);
   }
 
+  /* ── Form ── */
   .input {
-    @apply w-full bg-black-soft border border-black-border rounded-xl px-4 py-3
-           text-white placeholder:text-white/30 outline-none
-           focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20
-           transition-all duration-200;
+    @apply w-full rounded-xl px-4 py-3 outline-none transition-all duration-200;
+    background: rgb(var(--ns-surface-soft));
+    border: 1px solid rgb(var(--ns-line));
+    color: rgb(var(--ns-ink));
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  .input::placeholder { color: rgb(var(--ns-ink-subtle)); }
+  .input:focus {
+    border-color: rgb(var(--ns-brand));
+    box-shadow: 0 0 0 3px rgb(var(--ns-brand) / 0.10);
   }
 
   .label {
-    @apply text-sm font-medium text-white/60 mb-1.5 block;
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: rgb(var(--ns-ink-muted));
+    letter-spacing: 0.02em;
   }
 
-  .text-gold { @apply text-gold-500; }
-  .heading-display { @apply font-display font-bold; }
+  /* ── Sidebar ── */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-150 cursor-pointer;
+    color: rgb(var(--ns-ink-subtle));
+  }
+  .sidebar-item:hover {
+    color: rgb(var(--ns-ink));
+    background: rgb(var(--ns-brand-soft));
+  }
+  .sidebar-item.active {
+    color: rgb(var(--ns-brand));
+    background: rgb(var(--ns-brand-soft));
+    font-weight: 500;
+  }
 
+  /* ── Badge ── */
   .badge {
     @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
+  /* ── Status badges ── */
+  .status-pending     { @apply badge; background: #FEF3C7; color: #92400E; }
+  .status-confirmed   { @apply badge; background: #DCFCE7; color: #14532D; }
+  .status-in_progress { @apply badge; background: #DBEAFE; color: #1E3A8A; }
+  .status-completed   { @apply badge; background: #F3F4F6; color: #374151; }
+  .status-canceled    { @apply badge; background: #FEE2E2; color: #7F1D1D; }
+  .status-no_show     { @apply badge; background: #EDE9FE; color: #4C1D95; }
+
+  /* ── Skeleton ── */
   .skeleton {
-    @apply bg-gradient-to-r from-black-soft via-black-muted to-black-soft
-           bg-[length:200%_100%] animate-shimmer rounded-lg;
+    @apply rounded-lg animate-shimmer;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--ns-surface-soft)) 0%,
+      rgb(var(--ns-line)) 50%,
+      rgb(var(--ns-surface-soft)) 100%
+    );
+    background-size: 200% 100%;
   }
 
-  .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/50
-           hover:text-white hover:bg-gold-50 transition-all duration-150 cursor-pointer;
-  }
-
-  .sidebar-item.active {
-    @apply text-gold-600 bg-gold-100 font-medium;
-  }
-
-  .status-pending     { @apply badge; background-color: rgb(var(--ns-warning-light)); color: rgb(var(--ns-warning)); }
-  .status-confirmed   { @apply badge; background-color: rgb(var(--ns-success-light)); color: rgb(var(--ns-success)); }
-  .status-in_progress { @apply badge; background-color: rgb(var(--ns-info-light));    color: rgb(var(--ns-info));    }
-  .status-completed   { @apply badge; background-color: rgb(var(--ns-neutral-light)); color: rgb(var(--ns-neutral)); }
-  .status-canceled    { @apply badge; background-color: rgb(var(--ns-danger-light));  color: rgb(var(--ns-danger));  }
-  .status-no_show     { @apply badge; background-color: rgb(var(--ns-noshow-light));  color: rgb(var(--ns-noshow));  }
+  /* ── Yardımcı ── */
+  .text-gold { color: rgb(var(--ns-brand)); }
+  .heading-display { font-family: var(--font-playfair), Georgia, serif; font-weight: 600; }
 }
 
 @layer utilities {

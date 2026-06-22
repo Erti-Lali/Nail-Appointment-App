@@ -25,7 +25,7 @@ export default function NotificationsPage() {
         fetch("/api/notifications/status").then((r) => r.json()).catch(() => ({ sms: false, email: false, push: false })),
       ]);
 
-      setData({ tenantId, history: history ?? [], status: statusRes });
+      setData({ tenantId, userId: user.id, history: history ?? [], status: statusRes });
       setLoading(false);
     }
     load();

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
-import { AnalyticsClient } from "@/components/analytics/analytics-client";
+import { AnalyticsClient, AnalyticsSkeleton } from "@/components/analytics/analytics-client";
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
@@ -24,10 +23,10 @@ export default function AnalyticsPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 text-brand animate-spin" /></div>;
+    return <AnalyticsSkeleton />;
   }
   if (!tenantId) {
-    return <p className="text-ink-subtle">Stüdyo bağlı değil.</p>;
+    return <p className="text-ink-subtle font-sans">Stüdyo bağlı değil.</p>;
   }
   return <AnalyticsClient tenantId={tenantId} />;
 }

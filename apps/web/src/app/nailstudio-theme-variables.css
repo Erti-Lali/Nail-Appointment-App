@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    NailStudio 101 — Tema renk değişkenleri (TEK KAYNAK)
-   Palet: Aviora "NailStudio 101 — Design Tokens"
+   Palet: Gül & Krem — "Sophisticated Rose"
 
    Değerler RGB-kanal üçlüsü olarak tutulur ("R G B"), böylece hem
    Tailwind token'larında `rgb(var(--ns-x) / <alpha-value>)` ile
@@ -10,26 +10,26 @@
    Marka temasını değiştirmek için SADECE bu dosyayı düzenleyin.
    ───────────────────────────────────────────────────────────── */
 :root {
-  --ns-brand:        233 30 140;   /* #E91E8C  birincil pembe (rose-primary)   */
-  --ns-brand-dark:   209 24 125;   /* #D1187D  hover/active (gradient-hover)    */
-  --ns-brand-light:  255 107 166;  /* #FF6BA6  açık vurgu (rose-light)          */
-  --ns-brand-soft:   255 233 242;  /* #FFE9F2  tonlu yüzey (chip/badge)         */
+  --ns-brand:        196 53 106;    /* #C4356A  birincil gül (rose-primary)      */
+  --ns-brand-dark:   155 37 80;     /* #9B2550  hover/active (rose-dark)         */
+  --ns-brand-light:  229 166 185;   /* #E5A6B9  açık pudra (rose-light)          */
+  --ns-brand-soft:   253 240 244;   /* #FDF0F4  tonlu yüzey (chip/badge)         */
 
-  --ns-surface:      255 255 255;  /* #FFFFFF  kart (card)                      */
-  --ns-surface-soft: 254 240 245;  /* #FEF0F5  input / panel (input-bg)         */
-  --ns-canvas:       255 245 249;  /* #FFF5F9  sayfa arka planı (page-bg)       */
-  --ns-line:         243 224 235;  /* #F3E0EB  kenarlık (border)                */
+  --ns-surface:      255 255 255;   /* #FFFFFF  kart (card)                      */
+  --ns-surface-soft: 245 235 240;   /* #F5EBF0  input / panel (input-bg)         */
+  --ns-canvas:       250 243 240;   /* #FAF3F0  sayfa arka planı (cream)         */
+  --ns-line:         240 221 229;   /* #F0DDE5  kenarlık (border)                */
 
-  --ns-ink:          26 10 20;     /* #1A0A14  birincil metin (text-primary)    */
-  --ns-ink-muted:    107 74 94;    /* #6B4A5E  ikincil metin (text-secondary)   */
-  --ns-ink-subtle:   155 122 142;  /* #9B7A8E  placeholder (text-muted)         */
+  --ns-ink:          45 10 26;      /* #2D0A1A  birincil metin (ink/dark)        */
+  --ns-ink-muted:    107 48 80;     /* #6B3050  ikincil metin (rose-muted)       */
+  --ns-ink-subtle:   155 110 122;   /* #9B6E7A  placeholder (rose-subtle)        */
 
-  --ns-overlay:      0 0 0;        /* modal arka plan (örn. /40) */
+  --ns-overlay:      0 0 0;         /* modal arka plan (örn. /40) */
 
-  /* ── Durum renkleri (Aviora) — base + light ── */
+  /* ── Durum renkleri ── */
   --ns-success:        22 163 74;   /* #16A34A  onaylı           */
   --ns-success-light:  220 252 231; /* #DCFCE7 */
-  --ns-warning:        245 158 11;  /* #F59E0B  bekliyor         */
+  --ns-warning:        217 119 6;   /* #D97706  bekliyor         */
   --ns-warning-light:  254 243 199; /* #FEF3C7 */
   --ns-danger:         220 38 38;   /* #DC2626  iptal            */
   --ns-danger-light:   254 226 226; /* #FEE2E2 */
@@ -40,9 +40,9 @@
   --ns-neutral:        107 114 128; /* #6B7280  tamamlandı       */
   --ns-neutral-light:  243 244 246; /* #F3F4F6 */
 
-  /* İnce pembe tonlar (scrollbar / devre dışı durumlar) */
-  --ns-scrollbar:    243 192 217;  /* #F3C0D9 */
-  --ns-slot-taken-bg:251 233 241;  /* #FBE9F1 */
-  --ns-slot-taken-fg:217 168 194;  /* #D9A8C2 */
-  --ns-line-strong:  217 184 203;  /* #D9B8CB  belirgin kenarlık (checkbox) */
+  /* Gül tonlar (scrollbar / devre dışı durumlar) */
+  --ns-scrollbar:    229 166 185;   /* #E5A6B9 */
+  --ns-slot-taken-bg:245 225 232;   /* #F5E1E8 */
+  --ns-slot-taken-fg:196 145 163;   /* #C491A3 */
+  --ns-line-strong:  210 180 195;   /* #D2B4C3  belirgin kenarlık */
 }

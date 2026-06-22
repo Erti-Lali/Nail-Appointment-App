@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { AuthBrandPanel, NailDropMark } from "@/components/auth/auth-brand-panel";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -46,92 +47,102 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
-      <Link
-        href="/"
-        className="absolute top-5 left-5 z-10 inline-flex items-center gap-1.5 text-sm font-medium text-white/50 hover:text-white transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Geri
-      </Link>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen flex bg-[#FAF3F0]">
+      <AuthBrandPanel
+        heading="Güzelliği büyütmeye bugün başlayın."
+        subtext="14 gün ücretsiz deneyin — randevudan ödemeye, her şey tek yerde."
+      />
 
-      <div className="w-full max-w-sm relative">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gold-gradient flex items-center justify-center shadow-gold mb-4">
-            <Sparkles className="w-7 h-7 text-black" />
+      {/* Form paneli */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative">
+        <Link
+          href="/"
+          className="absolute top-5 left-5 inline-flex items-center gap-1.5 text-sm font-medium text-[#9B6E7A] hover:text-[#2D0A1A] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Geri
+        </Link>
+
+        <div className="w-full max-w-sm">
+          {/* Mobil logo (sol panel gizliyken) */}
+          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
+            <NailDropMark />
+            <span className="font-display text-lg font-bold tracking-[0.12em] text-[#2D0A1A]">
+              NAILSTUDIO 101
+            </span>
           </div>
-          <h1 className="font-display text-2xl font-bold text-white">NailStudio 101</h1>
-          <p className="text-white/40 text-sm mt-1">14 gün ücretsiz deneyin</p>
-        </div>
 
-        <div className="card border border-black-border">
-          <h2 className="text-lg font-semibold text-white mb-6">Hesap Oluştur</h2>
+          <div className="card">
+            <h1 className="font-display text-2xl font-bold text-[#2D0A1A]">Hesap oluşturun</h1>
+            <p className="text-[#9B6E7A] text-sm mt-1 mb-6">14 gün ücretsiz deneyin</p>
 
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Ad</label>
+                  <input
+                    value={form.firstName}
+                    onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                    className="input"
+                    placeholder="Ayşe"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label">Soyad</label>
+                  <input
+                    value={form.lastName}
+                    onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                    className="input"
+                    placeholder="Yıldız"
+                    required
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="label">Ad</label>
+                <label className="label">E-posta</label>
                 <input
-                  value={form.firstName}
-                  onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   className="input"
-                  placeholder="Ayşe"
+                  placeholder="studio@example.com"
                   required
                 />
               </div>
+
               <div>
-                <label className="label">Soyad</label>
+                <label className="label">Şifre</label>
                 <input
-                  value={form.lastName}
-                  onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   className="input"
-                  placeholder="Yıldız"
+                  placeholder="En az 6 karakter"
+                  minLength={6}
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="label">E-posta</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="input"
-                placeholder="studio@example.com"
-                required
-              />
-            </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gold w-full flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ücretsiz Başla"}
+              </button>
+            </form>
 
-            <div>
-              <label className="label">Şifre</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                className="input"
-                placeholder="En az 6 karakter"
-                minLength={6}
-                required
-              />
-            </div>
+            <p className="text-center text-[#9B6E7A] text-sm mt-6">
+              Zaten hesabınız var mı?{" "}
+              <Link href="/auth/login" className="font-medium text-[#C4356A] hover:text-[#9B2550] transition-colors">
+                Giriş Yap
+              </Link>
+            </p>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-gold w-full flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ücretsiz Başla"}
-            </button>
-          </form>
-
-          <p className="text-center text-white/30 text-sm mt-6">
-            Zaten hesabınız var mı?{" "}
-            <Link href="/auth/login" className="text-gold-500 hover:text-gold-400">
-              Giriş Yap
-            </Link>
+          <p className="text-center text-[#9B6E7A] text-xs mt-6" style={{ opacity: 0.7 }}>
+            Kredi kartı gerekmez · İstediğiniz zaman iptal edin
           </p>
         </div>
       </div>
