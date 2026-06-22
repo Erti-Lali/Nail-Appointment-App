@@ -31,6 +31,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
         Relationships: [];
       };
+      customer_favorites: {
+        Row: { id: string; profile_id: string; tenant_id: string | null; service_id: string | null; type: string; created_at: string | null };
+        Insert: { id?: string; profile_id: string; tenant_id?: string | null; service_id?: string | null; type: string; created_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["customer_favorites"]["Insert"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at: string | null; data: Json | null; failed_at: string | null; id: string; is_read: boolean | null; recipient_id: string; sent_at: string | null; tenant_id: string; title: string; type: string };
         Insert: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at?: string | null; data?: Json | null; failed_at?: string | null; id?: string; is_read?: boolean | null; recipient_id: string; sent_at?: string | null; tenant_id: string; title: string; type: string };
@@ -98,8 +104,8 @@ export type Database = {
         Relationships: [];
       };
       tenants: {
-        Row: { address: string | null; booking_advance_days: number | null; cancellation_hours: number | null; city: string | null; country: string | null; cover_url: string | null; created_at: string | null; currency: string | null; email: string | null; google_maps_url: string | null; id: string; instagram_handle: string | null; is_active: boolean | null; locale: string | null; logo_url: string | null; name: string; phone: string | null; primary_color: string | null; reminder_hours: number[] | null; secondary_color: string | null; slug: string; subscription_plan: string; timezone: string | null; updated_at: string | null; website: string | null };
-        Insert: { address?: string | null; booking_advance_days?: number | null; cancellation_hours?: number | null; city?: string | null; country?: string | null; cover_url?: string | null; created_at?: string | null; currency?: string | null; email?: string | null; google_maps_url?: string | null; id?: string; instagram_handle?: string | null; is_active?: boolean | null; locale?: string | null; logo_url?: string | null; name: string; phone?: string | null; primary_color?: string | null; reminder_hours?: number[] | null; secondary_color?: string | null; slug: string; subscription_plan?: string; timezone?: string | null; updated_at?: string | null; website?: string | null };
+        Row: { address: string | null; auto_confirm: boolean; booking_advance_days: number | null; cancellation_hours: number | null; city: string | null; country: string | null; cover_url: string | null; created_at: string | null; currency: string | null; description: string | null; email: string | null; google_maps_url: string | null; id: string; instagram_handle: string | null; is_active: boolean | null; locale: string | null; logo_url: string | null; name: string; phone: string | null; primary_color: string | null; reminder_hours: number[] | null; secondary_color: string | null; slot_duration_minutes: number; slug: string; subscription_plan: string; timezone: string | null; updated_at: string | null; website: string | null };
+        Insert: { address?: string | null; auto_confirm?: boolean; booking_advance_days?: number | null; cancellation_hours?: number | null; city?: string | null; country?: string | null; cover_url?: string | null; created_at?: string | null; currency?: string | null; description?: string | null; email?: string | null; google_maps_url?: string | null; id?: string; instagram_handle?: string | null; is_active?: boolean | null; locale?: string | null; logo_url?: string | null; name: string; phone?: string | null; primary_color?: string | null; reminder_hours?: number[] | null; secondary_color?: string | null; slot_duration_minutes?: number; slug: string; subscription_plan?: string; timezone?: string | null; updated_at?: string | null; website?: string | null };
         Update: Partial<Database["public"]["Tables"]["tenants"]["Insert"]>;
         Relationships: [];
       };
