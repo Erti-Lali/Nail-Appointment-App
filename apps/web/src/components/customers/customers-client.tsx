@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search, Plus, Users, TrendingUp, Star, Phone, Tag,
   MoreVertical, ArrowUpDown, ChevronRight,
@@ -25,10 +25,20 @@ const SORT_OPTIONS = [
 
 export function CustomersClient({ customers: initial, tenantId, stats }: CustomersClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [customers, setCustomers] = useState(initial);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("created_at");
   const [showNewModal, setShowNewModal] = useState(false);
+
+  // Dashboard hızlı işlem derin linki (?new=1) → yeni müşteri modalını aç.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setShowNewModal(true);
+      router.replace("/customers", { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const filtered = customers
     .filter((c) => {
