@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { formatPrice, minutesToDisplay, isValidPhone } from "@nailstudio/shared";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Heart } from "lucide-react";
 
 const STEPS = ["Hizmet", "Personel", "Tarih & Saat", "Bilgiler"];
 
@@ -39,6 +41,30 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Favorites — only offered to a logged-in customer on the success screen.
+  const [favToken, setFavToken] = useState<string | null>(null);
+  const [favAdding, setFavAdding] = useState(false);
+  const [favDone, setFavDone] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data }) => setFavToken(data.session?.access_token ?? null));
+  }, []);
+
+  const addFavorites = async () => {
+    if (!favToken) return;
+    setFavAdding(true);
+    try {
+      const headers = { "Content-Type": "application/json", Authorization: `Bearer ${favToken}` };
+      await fetch("/api/customer/favorites", { method: "POST", headers, body: JSON.stringify({ type: "studio", tenantId: tenant.id }) });
+      for (const id of serviceIds) {
+        await fetch("/api/customer/favorites", { method: "POST", headers, body: JSON.stringify({ type: "service", serviceId: id }) });
+      }
+      setFavDone(true);
+    } catch {
+      /* sessiz geç — favori opsiyoneldir */
+    }
+    setFavAdding(false);
+  };
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
   const totalDuration = selectedServices.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0);
@@ -165,7 +191,20 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
           <p className="text-ink-subtle text-xs mt-5">
             Randevu durumu onaylandığında bilgilendirileceksiniz.
           </p>
-          <a href="/hesabim/kayit" className="mt-5 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all">
+          {favToken && (
+            favDone ? (
+              <div className="mt-5 inline-flex items-center justify-center gap-2 w-full bg-brand-soft text-brand font-semibold py-2.5 rounded-xl">
+                <Heart className="w-4 h-4 fill-brand" /> Favorilere eklendi
+              </div>
+            ) : (
+              <button onClick={addFavorites} disabled={favAdding}
+                className="mt-5 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all disabled:opacity-50">
+                {favAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className="w-4 h-4" />}
+                Stüdyo ve hizmetleri favorilere ekle
+              </button>
+            )
+          )}
+          <a href={favToken ? "/hesabim" : "/hesabim/kayit"} className="mt-3 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all">
             Randevularımı takip et
           </a>
         </div>
@@ -269,7 +308,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
                 className={cn("w-full flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all bg-surface",
                   staffId === m.id ? "border-brand ring-2 ring-brand/15" : "border-line hover:border-brand/40")}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold shrink-0 overflow-hidden"
-                  style={{ backgroundColor: `${m.color ?? "#E91E8C"}20`, color: m.color ?? "#E91E8C" }}>
+                  style={{ backgroundColor: `${m.color ?? "#C4356A"}20`, color: m.color ?? "#C4356A" }}>
                   {m.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.avatar_url} alt={m.display_name} className="w-full h-full object-cover" />
