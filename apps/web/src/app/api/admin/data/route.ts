@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Yetkisiz" }, { status: 403 });
 
   const [tenantsRes, apptRes, custRes, profRes, usersRes] = await Promise.all([
-    admin.from("tenants").select("id, name, slug, is_active, subscription_plan, created_at").order("created_at"),
+    admin.from("tenants").select("id, name, slug, description, is_active, subscription_plan, slot_duration_minutes, auto_confirm, created_at").order("created_at"),
     admin.from("appointments").select("tenant_id, final_price, status"),
     admin.from("customers").select("tenant_id"),
     admin.from("profiles").select("id, role, tenant_id, first_name, last_name"),
