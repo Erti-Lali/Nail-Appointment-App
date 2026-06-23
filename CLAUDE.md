@@ -66,7 +66,9 @@ npm run dev
   → `POST /api/book` (service role ile customer+appointment), `GET /api/book` (müsait saatler)
 - `/settings` — gerçek formlar: Stüdyo bilgileri + Randevu ayarları (`tenants`'a yazar) + Şifre + Abonelik (read-only)
 - `/analytics` — gerçek KPI + recharts (ciro trendi, top hizmetler, durum dağılımı, personel performansı)
-- `/content` — `tenant_content` galeri CRUD (ekle/yayınla/sil, tür filtresi)
+- ⏸️ `/content` — `tenant_content` galeri CRUD + doğrudan dosya yükleme (storage).
+  Kodu HAZIR ama **ilk sürümde sidebar nav'dan gizlendi** (kullanıcı istemiyor);
+  doğrudan URL ile açılır. Geri açmak: `sidebar.tsx` NAV_ITEMS'a İçerik öğesini ekle.
 - `/notifications` — gerçek geçmiş + kanal durumu + manuel gönderim
   → `lib/notifications.ts` (Netgsm SMS + Resend email), `/api/notifications/send` + `/status`
   → Kanal durumu **env var**'lardan okunur (`NETGSM_*` / `RESEND_API_KEY`), `tenants`'tan DEĞİL.
@@ -130,12 +132,29 @@ npm run dev
 - ✅ **Migration `005_customer_favorites.sql`** UYGULANDI (2026-06-22) →
   `customer_favorites` tablosu (profile_id, tenant_id?, service_id?, type studio/service)
   + RLS `users_own_favorites` (profile_id = auth.uid()). `database.types.ts` elle eklendi.
+- ✅ **Migration `006_storage_bucket.sql`** UYGULANDI (2026-06-23) →
+  public `tenant-content` storage bucket (5MB, image/jpeg·png·webp·gif) + storage.objects
+  RLS (read public; insert/update/delete → `public.is_staff_member()` + path'in ilk
+  klasörü `public.get_my_tenant_id()`). `/content` artık doğrudan dosya yükler
+  (`POST /api/upload`, service role, path `tenant-content/{tenantId}/{uuid}-{name}`);
+  URL ile ekleme de çalışır (geriye dönük uyumlu). İçerik silinince bucket'tan da silinir.
+  Not: Görevde "005" istendi ama 005 dolu olduğu için 006 kullanıldı.
+- ✅ **Migration `007_appointment_reminders.sql`** UYGULANDI (2026-06-23) →
+  `appointment_reminders` tablosu (appointment_id, tenant_id, channel sms/email/push,
+  scheduled_at, sent_at, failed_at, error) + kısmi index + UNIQUE(appointment,channel,
+  scheduled_at) + RLS (politika yok = sadece service role). Randevu oluşunca
+  (`POST /api/book` + admin modal → `POST /api/reminders/schedule`) `reminder_hours`'a
+  göre satırlar planlanır (kanal sadece `smsConfigured()`/`emailConfigured()` ise).
+  `GET/POST /api/cron/reminders` (`CRON_SECRET` Bearer korumalı) zamanı gelenleri
+  gönderir; `vercel.json` 5 dk'da bir tetikler. `lib/reminders.ts` = planlama + TR
+  şablonları. Görevde "005" istendi ama 007 kullanıldı (005/006 dolu).
 - **Web `.env.local`** → public booking için `SUPABASE_SERVICE_ROLE_KEY` gerekli.
+- **Cron** → otomatik hatırlatma için `CRON_SECRET` env var'ı gerekli (Vercel Cron
+  otomatik `Authorization: Bearer <CRON_SECRET>` gönderir). Kanallar için `NETGSM_*` /
+  `RESEND_API_KEY`. Bunlar yoksa hatırlatma satırı oluşturulmaz (özellik pasif).
 - **SMS/E-posta** → `NETGSM_*` / `RESEND_API_KEY` set edilince otomatik aktifleşir (yoksa "Yapılandırılmadı").
 - **Mobile** → `cd apps/mobile && npm install` (yeni dosyalar mevcut bağımlılıkları kullanır).
 
 ## Sonraki adımlar (opsiyonel)
-- Görsel yükleme için Supabase Storage bucket (şu an content URL ile)
 - Expo push notification token kaydı + gönderimi
-- Randevu oluşturulunca otomatik SMS/email hatırlatma (cron + reminder_hours)
 - Stripe ile abonelik yükseltme akışı
