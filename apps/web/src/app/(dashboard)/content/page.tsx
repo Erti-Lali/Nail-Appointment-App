@@ -1,5 +1,10 @@
 "use client";
 
+// ⏸️ İLK SÜRÜMDE GİZLENDİ — İçerik (galeri) yönetimi.
+// Sayfa + /api/upload + tenant-content storage bucket çalışır durumda ama
+// sidebar nav'dan link kaldırıldı (ilk sürümde istenmiyor). Doğrudan URL ile
+// hâlâ açılır. Geri açmak için: sidebar.tsx NAV_ITEMS'a İçerik öğesini ekle.
+
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/components/providers/user-provider";

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
   LayoutDashboard, Calendar, Users, Scissors, UserCheck,
-  BarChart3, Settings, Image, LogOut,
+  BarChart3, Settings, LogOut,
   Bell, ChevronRight, X, CalendarClock, Shield, Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,8 @@ const NAV_ITEMS = [
   { icon: UserCheck,       label: "Personel",    href: "/staff" },
   { icon: CalendarClock,   label: "Vardiyalar",  href: "/shifts" },
   { icon: BarChart3,       label: "Analitik",    href: "/analytics" },
-  { icon: Image,           label: "İçerik",      href: "/content" },
+  // İçerik (/content) ilk sürümde gizlendi — sayfa + upload API + storage kodu duruyor,
+  // sonraki sürümde nav'a geri eklenecek.
 ];
 
 const BOTTOM_ITEMS = [
