@@ -155,12 +155,14 @@ export async function POST(request: NextRequest) {
   // Find existing customer by (tenant_id, phone) — unique constraint
   const { data: existing } = await supabase
     .from("customers")
-    .select("id")
+    .select("id, profile_id")
     .eq("tenant_id", tenantId)
     .eq("phone", phone)
     .maybeSingle();
 
   let customerId = existing?.id as string | undefined;
+  // A returning customer who uses the app has a linked profile → push reminders.
+  const customerProfileId = (existing?.profile_id as string | null) ?? null;
 
   if (!customerId) {
     const { data: created, error: custErr } = await supabase
@@ -233,6 +235,7 @@ export async function POST(request: NextRequest) {
       reminderHours: tenantRow?.reminder_hours,
       phone,
       email: customer.email?.trim() || null,
+      profileId: customerProfileId,
     });
   } catch { /* hatırlatma planlanamadı — randevu yine de oluştu */ }
 

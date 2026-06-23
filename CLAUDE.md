@@ -148,13 +148,26 @@ npm run dev
   `GET/POST /api/cron/reminders` (`CRON_SECRET` Bearer korumalı) zamanı gelenleri
   gönderir; `vercel.json` 5 dk'da bir tetikler. `lib/reminders.ts` = planlama + TR
   şablonları. Görevde "005" istendi ama 007 kullanıldı (005/006 dolu).
+- ✅ **Migration `008_push_tokens.sql`** UYGULANDI (2026-06-23) →
+  `push_tokens` (profile_id, **tenant_id nullable**, token, platform ios/android,
+  UNIQUE(profile_id,token)) + RLS (politika yok = service role). Sapma: görevde
+  `tenant_id NOT NULL` ve "00X" denmişti; çoğu profilde tenant_id null olduğu için
+  NULLABLE yapıldı, numara 008. Mobil token kaydı `POST /api/push-token` (Bearer auth,
+  upsert). `lib/notifications.ts`'e `sendPush()` eklendi (Expo API, `DeviceNotRegistered`
+  → cron token'ı siler). Reminder planlayıcı, müşterinin bağlı profilinde token varsa
+  `channel='push'` satırı da oluşturur; cron push'u gönderir. `notifications/status`
+  push'u tenant müşterilerinin token sayısına göre döner. Mobil: `lib/push.ts`
+  (izin+token+POST), `_layout.tsx` PushManager + foreground handler. `app.json`
+  expo-notifications plugin zaten ekliydi.
 - **Web `.env.local`** → public booking için `SUPABASE_SERVICE_ROLE_KEY` gerekli.
 - **Cron** → otomatik hatırlatma için `CRON_SECRET` env var'ı gerekli (Vercel Cron
   otomatik `Authorization: Bearer <CRON_SECRET>` gönderir). Kanallar için `NETGSM_*` /
   `RESEND_API_KEY`. Bunlar yoksa hatırlatma satırı oluşturulmaz (özellik pasif).
 - **SMS/E-posta** → `NETGSM_*` / `RESEND_API_KEY` set edilince otomatik aktifleşir (yoksa "Yapılandırılmadı").
-- **Mobile** → `cd apps/mobile && npm install` (yeni dosyalar mevcut bağımlılıkları kullanır).
+- **Mobile** → `cd apps/mobile && npm install` (yeni `expo-device` eklendi; `npx expo install expo-device`).
+  Push'un gerçek çalışması için: `EXPO_PUBLIC_API_URL` (web backend) + `app.json`'a EAS
+  `projectId` (Expo push token bunu ister) + fiziksel cihaz. Yoksa `registerPushToken()`
+  sessizce no-op olur.
 
 ## Sonraki adımlar (opsiyonel)
-- Expo push notification token kaydı + gönderimi
 - Stripe ile abonelik yükseltme akışı

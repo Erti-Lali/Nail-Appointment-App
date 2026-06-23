@@ -48,6 +48,26 @@ export async function sendSms(to: string, message: string): Promise<SendResult> 
   }
 }
 
+// ─── Expo Push ────────────────────────────────────────────
+// Expo's push API needs no server credentials. On an invalid/expired token Expo
+// returns a "DeviceNotRegistered" error — the caller should delete that token.
+export async function sendPush(expoPushToken: string, title: string, body: string): Promise<SendResult> {
+  try {
+    const res = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ to: expoPushToken, title, body, sound: "default" }),
+    });
+    const data = await res.json();
+    const ticket = Array.isArray(data?.data) ? data.data[0] : data?.data;
+    if (ticket?.status === "ok") return { ok: true, id: ticket.id };
+    const reason = ticket?.details?.error ?? ticket?.message ?? data?.errors?.[0]?.message ?? "Push gönderilemedi";
+    return { ok: false, reason };
+  } catch (e: any) {
+    return { ok: false, reason: e?.message ?? "Push gönderilemedi" };
+  }
+}
+
 // ─── Resend Email ─────────────────────────────────────────
 export async function sendEmail(to: string, subject: string, html: string): Promise<SendResult> {
   if (!emailConfigured()) {

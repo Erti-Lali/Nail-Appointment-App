@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   const { data: appt } = await admin
     .from("appointments")
-    .select("id, tenant_id, starts_at, status, customer:customers(phone, email)")
+    .select("id, tenant_id, starts_at, status, customer:customers(phone, email, profile_id)")
     .eq("id", body.appointmentId)
     .single();
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { data: tenant } = await admin
     .from("tenants").select("reminder_hours").eq("id", appt.tenant_id).single();
-  const customer = appt.customer as unknown as { phone?: string | null; email?: string | null } | null;
+  const customer = appt.customer as unknown as { phone?: string | null; email?: string | null; profile_id?: string | null } | null;
 
   const scheduled = await scheduleAppointmentReminders(admin, {
     appointmentId: appt.id,
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     reminderHours: tenant?.reminder_hours,
     phone: customer?.phone,
     email: customer?.email,
+    profileId: customer?.profile_id,
   });
 
   return NextResponse.json({ success: true, scheduled });

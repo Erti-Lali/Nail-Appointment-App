@@ -32,6 +32,7 @@ export interface ScheduleReminderOpts {
   reminderHours?: number[] | null;
   phone?: string | null;
   email?: string | null;
+  profileId?: string | null; // when the customer has a linked account → push
 }
 
 // Inserts one reminder row per (reminder hour × configured channel the customer
@@ -45,7 +46,16 @@ export async function scheduleAppointmentReminders(
   const hours = opts.reminderHours && opts.reminderHours.length ? opts.reminderHours : DEFAULT_REMINDER_HOURS;
   const sms = smsConfigured() && !!opts.phone;
   const email = emailConfigured() && !!opts.email;
-  if (!sms && !email) return 0;
+
+  // Push is available when the customer has a linked profile with a device token.
+  let push = false;
+  if (opts.profileId) {
+    const { count } = await admin
+      .from("push_tokens").select("id", { count: "exact", head: true }).eq("profile_id", opts.profileId);
+    push = (count ?? 0) > 0;
+  }
+
+  if (!sms && !email && !push) return 0;
 
   const startMs = toUtcDate(opts.startsAt).getTime();
   const rows: {
@@ -56,6 +66,7 @@ export async function scheduleAppointmentReminders(
     const scheduled_at = new Date(startMs - h * 3_600_000).toISOString();
     if (sms) rows.push({ appointment_id: opts.appointmentId, tenant_id: opts.tenantId, channel: "sms", scheduled_at });
     if (email) rows.push({ appointment_id: opts.appointmentId, tenant_id: opts.tenantId, channel: "email", scheduled_at });
+    if (push) rows.push({ appointment_id: opts.appointmentId, tenant_id: opts.tenantId, channel: "push", scheduled_at });
   }
   if (!rows.length) return 0;
 
@@ -70,6 +81,14 @@ export async function scheduleAppointmentReminders(
 export function reminderSms(firstName: string, startsAt: string, studioName: string): string {
   const { date, time } = formatWall(startsAt);
   return `Merhaba ${firstName || "değerli müşterimiz"}, ${date} tarihinde saat ${time}'deki randevunuzu hatırlatmak isteriz. ${studioName}`;
+}
+
+export function reminderPush(firstName: string, startsAt: string, studioName: string): { title: string; body: string } {
+  const { date, time } = formatWall(startsAt);
+  return {
+    title: `${studioName} · Randevu Hatırlatması`,
+    body: `Merhaba ${firstName || "değerli müşterimiz"}, ${date} ${time}'deki randevunuzu hatırlatırız 💅`,
+  };
 }
 
 export function reminderEmail(

@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { sendSms, sendEmail } from "@/lib/notifications";
-import { reminderSms, reminderEmail } from "@/lib/reminders";
+import { sendSms, sendEmail, sendPush } from "@/lib/notifications";
+import { reminderSms, reminderEmail, reminderPush } from "@/lib/reminders";
 
 // Cron worker: sends due appointment reminders.
 // Vercel Cron calls this on a schedule with `Authorization: Bearer <CRON_SECRET>`.
@@ -28,7 +28,7 @@ async function handle(req: NextRequest) {
     .from("appointment_reminders")
     .select(
       "id, channel, appointment:appointments(status, starts_at, " +
-      "customer:customers(first_name, phone, email), staff:staff(display_name), " +
+      "customer:customers(first_name, phone, email, profile_id), staff:staff(display_name), " +
       "service:services(name), tenant:tenants(name))",
     )
     .lte("scheduled_at", nowIso)
@@ -70,6 +70,24 @@ async function handle(req: NextRequest) {
         staffName: a.staff?.display_name, services: a.service?.name,
       });
       result = await sendEmail(cust.email, subject, html);
+    } else if (r.channel === "push") {
+      if (!cust?.profile_id) { await markFailed(r.id, "Müşterinin bağlı hesabı yok"); failed++; continue; }
+      const { data: tokens } = await admin
+        .from("push_tokens").select("id, token").eq("profile_id", cust.profile_id);
+      if (!tokens?.length) { await markFailed(r.id, "Push token yok"); failed++; continue; }
+      const { title, body } = reminderPush(firstName, a.starts_at, studioName);
+      let anyOk = false;
+      let lastReason = "Gönderilemedi";
+      for (const t of tokens as { id: string; token: string }[]) {
+        const res = await sendPush(t.token, title, body);
+        if (res.ok) anyOk = true;
+        else {
+          lastReason = res.reason ?? lastReason;
+          // Expire'lı/geçersiz token'ı temizle
+          if (res.reason === "DeviceNotRegistered") await admin.from("push_tokens").delete().eq("id", t.id);
+        }
+      }
+      result = anyOk ? { ok: true } : { ok: false, reason: lastReason };
     } else {
       await markFailed(r.id, `Desteklenmeyen kanal: ${r.channel}`); failed++; continue;
     }
