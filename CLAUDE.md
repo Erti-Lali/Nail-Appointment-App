@@ -119,8 +119,12 @@ npm run dev
   `tenants`'a `description` (text), `slot_duration_minutes` (int, default 30,
   check 15/30/45/60), `auto_confirm` (bool, default false) eklendi. Settings'teki
   Stüdyo açıklaması + Randevu slot süresi/oto-onay formları bunları kaydeder.
-  Not: `slot_duration_minutes` ve `auto_confirm` şu an sadece saklanıyor — booking
-  slot üretimi ve oto-onay akışına henüz bağlanmadı (TODO).
+  Not: `slot_duration_minutes` ve `auto_confirm` artık **web booking akışına bağlı**
+  (2026-06-23): `GET /api/book?tenantId=` → `slotDuration`/`autoConfirm` döner; booking-client
+  slot adımını bu değerden üretir; `POST /api/book` `auto_confirm` true ise randevuyu
+  `confirmed`, değilse `pending` oluşturur. ⚠️ Mobil (`apps/mobile/app/booking/[studioSlug].tsx`)
+  hâlâ **statik mock** (API'ye bağlı değil) — slotDuration bağlanması için önce gerçek
+  booking pipeline'ı kurulmalı (TODO).
   `database.types.ts` elle bu 3 kolonla güncellendi (dosya MCP generate'in üretmediği
   custom helper export'ları içerdiği için yeniden generate edilmedi).
 - ✅ **Migration `005_customer_favorites.sql`** UYGULANDI (2026-06-22) →

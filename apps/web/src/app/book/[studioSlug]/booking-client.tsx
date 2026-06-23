@@ -14,7 +14,6 @@ import { Heart } from "lucide-react";
 
 const STEPS = ["Hizmet", "Personel", "Tarih & Saat", "Bilgiler"];
 
-const SLOT_STEP = 30; // minutes between slots
 const toMin = (hhmm: string) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
 const toHHMM = (mins: number) => `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
 
@@ -36,6 +35,8 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
   const [busy, setBusy] = useState<{ starts_at: string; ends_at: string }[]>([]);
   const [workingHours, setWorkingHours] = useState<WorkingHours | null>(null);
   const [onLeave, setOnLeave] = useState(false);
+  const [slotDuration, setSlotDuration] = useState(30); // step between slots, from tenant settings
+  const [autoConfirm, setAutoConfirm] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", email: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -83,9 +84,15 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
     if (step !== 2 || !staffId) return;
     setLoadingSlots(true);
     setTime(null);
-    fetch(`/api/book?staffId=${staffId}&date=${date}`)
+    fetch(`/api/book?staffId=${staffId}&date=${date}&tenantId=${tenant.id}`)
       .then((r) => r.json())
-      .then((d) => { setBusy(d.busy ?? []); setWorkingHours(d.workingHours ?? null); setOnLeave(!!d.onLeave); })
+      .then((d) => {
+        setBusy(d.busy ?? []);
+        setWorkingHours(d.workingHours ?? null);
+        setOnLeave(!!d.onLeave);
+        setSlotDuration(d.slotDuration ?? 30);
+        setAutoConfirm(!!d.autoConfirm);
+      })
       .catch(() => { setBusy([]); setWorkingHours(null); setOnLeave(false); })
       .finally(() => setLoadingSlots(false));
   }, [step, staffId, date]);
@@ -98,15 +105,16 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
     const close = toMin(workingHours.end);
     const bStart = workingHours.breakStart ? toMin(workingHours.breakStart) : null;
     const bEnd = workingHours.breakEnd ? toMin(workingHours.breakEnd) : null;
+    const step = slotDuration > 0 ? slotDuration : 30;
     const out: string[] = [];
-    for (let t = open; t + totalDuration <= close; t += SLOT_STEP) {
+    for (let t = open; t + totalDuration <= close; t += step) {
       const end = t + totalDuration;
       // skip if appointment overlaps the break window
       if (bStart != null && bEnd != null && t < bEnd && bStart < end) continue;
       out.push(toHHMM(t));
     }
     return out;
-  }, [workingHours, totalDuration]);
+  }, [workingHours, totalDuration, slotDuration]);
 
   const slotTaken = (slot: string) => {
     if (totalDuration === 0) return false;
@@ -177,9 +185,13 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
           <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-5">
             <CalendarCheck className="w-8 h-8 text-brand" />
           </div>
-          <h1 className="text-2xl font-bold text-ink">Randevu Talebiniz Alındı! 🎉</h1>
+          <h1 className="text-2xl font-bold text-ink">
+            {autoConfirm ? "Randevunuz Onaylandı! 🎉" : "Randevu Talebiniz Alındı! 🎉"}
+          </h1>
           <p className="text-ink-muted mt-2">
-            {tenant.name} sizinle en kısa sürede iletişime geçecek.
+            {autoConfirm
+              ? `${tenant.name} sizi bekliyor olacak.`
+              : `${tenant.name} sizinle en kısa sürede iletişime geçecek.`}
           </p>
           <div className="bg-brand-soft border border-brand/20 rounded-2xl p-4 mt-6 text-left space-y-2 text-sm">
             <Row label="Hizmetler" value={selectedServices.map((s) => s.name).join(", ")} />
@@ -189,7 +201,9 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
             <Row label="Ücret" value={formatPrice(totalPrice, currency)} />
           </div>
           <p className="text-ink-subtle text-xs mt-5">
-            Randevu durumu onaylandığında bilgilendirileceksiniz.
+            {autoConfirm
+              ? "Randevunuz onaylandı. Görüşmek üzere!"
+              : "Randevu durumu onaylandığında bilgilendirileceksiniz."}
           </p>
           {favToken && (
             favDone ? (
