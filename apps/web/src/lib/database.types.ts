@@ -37,6 +37,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["customer_favorites"]["Insert"]>;
         Relationships: [];
       };
+      appointment_reminders: {
+        Row: { id: string; appointment_id: string; tenant_id: string; channel: string; scheduled_at: string; sent_at: string | null; failed_at: string | null; error: string | null; created_at: string | null };
+        Insert: { id?: string; appointment_id: string; tenant_id: string; channel: string; scheduled_at: string; sent_at?: string | null; failed_at?: string | null; error?: string | null; created_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["appointment_reminders"]["Insert"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at: string | null; data: Json | null; failed_at: string | null; id: string; is_read: boolean | null; recipient_id: string; sent_at: string | null; tenant_id: string; title: string; type: string };
         Insert: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at?: string | null; data?: Json | null; failed_at?: string | null; id?: string; is_read?: boolean | null; recipient_id: string; sent_at?: string | null; tenant_id: string; title: string; type: string };

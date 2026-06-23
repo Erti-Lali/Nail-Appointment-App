@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { addMinutes, format } from "date-fns";
+import { scheduleAppointmentReminders } from "@/lib/reminders";
 
 // Public online booking endpoint.
 // Anonymous visitors can't insert customers/appointments directly (RLS blocks it),
@@ -143,9 +144,9 @@ export async function POST(request: NextRequest) {
   const endsAt = format(addMinutes(new Date(startsAt), duration), "yyyy-MM-dd'T'HH:mm:ss");
 
   // Auto-confirm: when the studio enabled it, the appointment is created already
-  // confirmed instead of pending.
+  // confirmed instead of pending. reminder_hours drives the reminder schedule.
   const { data: tenantRow } = await supabase
-    .from("tenants").select("auto_confirm").eq("id", tenantId).maybeSingle();
+    .from("tenants").select("auto_confirm, reminder_hours, name").eq("id", tenantId).maybeSingle();
   const status = tenantRow?.auto_confirm === true ? "confirmed" : "pending";
 
   // Normalize phone for find-or-create
@@ -222,6 +223,18 @@ export async function POST(request: NextRequest) {
     duration_minutes: s.duration_minutes ?? 0,
   }));
   await supabase.from("appointment_services").insert(asRows);
+
+  // Schedule SMS/email reminders (best-effort — never block the booking).
+  try {
+    await scheduleAppointmentReminders(supabase, {
+      appointmentId: appointment.id,
+      tenantId,
+      startsAt,
+      reminderHours: tenantRow?.reminder_hours,
+      phone,
+      email: customer.email?.trim() || null,
+    });
+  } catch { /* hatırlatma planlanamadı — randevu yine de oluştu */ }
 
   return NextResponse.json({ success: true, appointmentId: appointment.id, status });
 }

@@ -152,6 +152,16 @@ export function NewAppointmentModal({ staff, services, customers, appointments =
       toast.success("Randevu oluşturuldu!");
     }
 
+    // Schedule SMS/email reminders (best-effort — never block the flow).
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch("/api/reminders/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body: JSON.stringify({ appointmentId: data.id }),
+      });
+    } catch { /* hatırlatma planlanamadı — randevu yine de oluştu */ }
+
     onSuccess({
       ...data,
       appointment_services: selectedServices.map((s) => ({
