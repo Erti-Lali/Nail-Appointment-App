@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 // Direct file upload for /content gallery images.
 // Verifies the caller's token, then uploads with the service role to
@@ -13,6 +14,9 @@ const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const STAFF_ROLES = ["super_admin", "tenant_admin", "staff"];
 
 export async function POST(req: NextRequest) {
+  const limited = enforceRateLimit(req, "upload", 30, 60_000);
+  if (limited) return limited;
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) return NextResponse.json({ error: "Sunucu yapılandırması eksik" }, { status: 500 });
 

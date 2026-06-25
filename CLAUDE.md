@@ -169,5 +169,26 @@ npm run dev
   `projectId` (Expo push token bunu ister) + fiziksel cihaz. Yoksa `registerPushToken()`
   sessizce no-op olur.
 
+## Production hazırlık (deploy)
+### ✅ Yapılan kritik sıkılaştırmalar (2026-06-25)
+- **Rate-limit** eklendi: `lib/rate-limit.ts` (IP bazlı, in-memory). Public/write
+  uçlara uygulandı: `/api/book` (8/dk), `/api/book/photo` (20/dk), `/api/upload` (30/dk).
+  Not: serverless'te per-instance; gerçek ölçek için Upstash/Vercel KV'ye taşı.
+- **Ölü/güvensiz auth route'ları silindi**: `/api/auth/login` (secure:false cookie) +
+  `/api/auth/debug` (cookie sızdırıyordu). Hiçbir yerden çağrılmıyordu (login client-side).
+- **`apps/web/.env.example`** eklendi — gerekli tüm env değişkenleri dökümante.
+
+### ⚙️ Deploy öncesi manuel adımlar (ZORUNLU)
+- **Vercel env**: `.env.example`'daki tüm değişkenler (özellikle `SUPABASE_SERVICE_ROLE_KEY`,
+  `CRON_SECRET`). Vercel root directory = `apps/web` (vercel.json orada).
+- **Supabase Auth → URL Configuration**: Site URL + Redirect URLs'e `/auth/callback`
+  eklenmeli (yoksa e-posta onay/şifre sıfırlama linkleri çalışmaz).
+- SMS/e-posta için `NETGSM_*` / `RESEND_API_KEY` (yoksa o kanallar pasif).
+
+### ⚠️ Tam "canlı" öncesi kalan blocker'lar
+- Otomatik test YOK · hata izleme (Sentry) YOK · KVKK/gizlilik metni YOK
+- Mobil booking ekranı statik MOCK (API'ye bağlı değil)
+- Stripe/abonelik tahsilatı YOK (read-only)
+
 ## Sonraki adımlar (opsiyonel)
 - Stripe ile abonelik yükseltme akışı
