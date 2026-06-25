@@ -41,8 +41,8 @@ export default function RegisterPage() {
       return;
     }
 
-    toast.success("Hesap oluşturuldu! Yönlendiriliyorsunuz...");
-    router.push("/dashboard");
+    toast.success("Hesap oluşturuldu! Stüdyonu oluşturalım...");
+    router.push("/studyo-olustur");
     router.refresh();
   };
 
