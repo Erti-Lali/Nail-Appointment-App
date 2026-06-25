@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 // Public reference-photo upload for the booking flow (customers are anonymous,
 // so this has no auth — unlike /api/upload which is staff-only). Scoped to an
@@ -11,6 +12,9 @@ const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(req: NextRequest) {
+  const limited = enforceRateLimit(req, "book-photo", 20, 60_000);
+  if (limited) return limited;
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) return NextResponse.json({ error: "Sunucu yapılandırması eksik" }, { status: 500 });
 

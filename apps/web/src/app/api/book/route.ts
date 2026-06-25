@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { addMinutes, format } from "date-fns";
 import { scheduleAppointmentReminders } from "@/lib/reminders";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 // Public online booking endpoint.
 // Anonymous visitors can't insert customers/appointments directly (RLS blocks it),
@@ -97,6 +98,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, "book", 8, 60_000);
+  if (limited) return limited;
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     return NextResponse.json(
