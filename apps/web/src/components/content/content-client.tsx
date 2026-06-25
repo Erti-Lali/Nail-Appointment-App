@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
-  Plus, Image as ImageIcon, X, Loader2, Trash2, Eye, EyeOff, ExternalLink,
+  Plus, Image as ImageIcon, X, Loader2, Trash2, Eye, EyeOff, ExternalLink, UploadCloud,
 } from "lucide-react";
+
+const STORAGE_MARKER = "/storage/v1/object/public/tenant-content/";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -45,6 +47,11 @@ export function ContentClient({ tenantId, initialContent }: { tenantId: string; 
     if (!confirm("Bu içeriği silmek istediğinize emin misiniz?")) return;
     const { error } = await supabase.from("tenant_content").delete().eq("id", item.id);
     if (error) return toast.error("Silinemedi");
+    // Görsel bizim bucket'tan yüklendiyse Storage'dan da sil (RLS: kendi tenant path'i).
+    if (typeof item.image_url === "string" && item.image_url.includes(STORAGE_MARKER)) {
+      const path = decodeURIComponent(item.image_url.split(STORAGE_MARKER)[1].split("?")[0]);
+      await supabase.storage.from("tenant-content").remove([path]);
+    }
     setItems((prev) => prev.filter((i) => i.id !== item.id));
     toast.success("İçerik silindi");
   };
@@ -138,10 +145,34 @@ export function ContentClient({ tenantId, initialContent }: { tenantId: string; 
   );
 }
 
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onClose: () => void; onSuccess: (c: any) => void }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ type: "gallery", title: "", description: "", image_url: "", link_url: "", is_published: true });
+
+  const handleFile = async (file: File) => {
+    if (!ALLOWED_TYPES.includes(file.type)) return toast.error("Desteklenmeyen dosya türü (JPEG, PNG, WebP, GIF)");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Dosya 5MB'tan büyük olamaz");
+    setUploading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      body: fd,
+    });
+    const d = await res.json().catch(() => ({}));
+    setUploading(false);
+    if (!res.ok) return toast.error(d.error ?? "Yükleme başarısız");
+    setForm((f) => ({ ...f, image_url: d.url }));
+    toast.success("Görsel yüklendi");
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,14 +218,46 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
             </div>
           </div>
           <div>
-            <label className={labelCls}>Görsel Bağlantısı (URL) *</label>
-            <input className={inputCls} value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} placeholder="https://..." required />
+            <label className={labelCls}>Görsel *</label>
+            {/* Dropzone — sürükle-bırak veya tıkla-seç */}
+            <div
+              onClick={() => !uploading && fileRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f); }}
+              className={cn(
+                "relative cursor-pointer rounded-xl border-2 border-dashed transition-all overflow-hidden",
+                dragging ? "border-brand bg-brand/5" : "border-line hover:border-brand/40",
+                form.image_url ? "h-40" : "h-32",
+              )}
+            >
+              {uploading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-ink-subtle">
+                  <Loader2 className="w-6 h-6 animate-spin text-brand" />
+                  <span className="text-xs">Yükleniyor…</span>
+                </div>
+              ) : form.image_url ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={form.image_url} alt="" className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.2"; }} />
+                  <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-1 rounded-lg bg-surface/90 text-ink-muted">Değiştir</span>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-3">
+                  <UploadCloud className="w-7 h-7 text-brand/50" />
+                  <span className="text-sm font-medium text-ink-muted">Görsel sürükle veya seç</span>
+                  <span className="text-[11px] text-ink-subtle">JPEG, PNG, WebP, GIF · max 5MB</span>
+                </div>
+              )}
+            </div>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+            {/* URL ile ekleme (geriye dönük uyumlu) */}
+            <input className={inputCls + " mt-2"} value={form.image_url}
+              onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
+              placeholder="veya görsel URL'si yapıştır" />
           </div>
-          {form.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.image_url} alt="" className="w-full h-40 object-cover rounded-xl border border-line"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          )}
           <div>
             <label className={labelCls}>Başlık</label>
             <input className={inputCls} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Örn: Yaz kampanyası" />
@@ -214,7 +277,7 @@ function ContentModal({ tenantId, onClose, onSuccess }: { tenantId: string; onCl
           </label>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl bg-surface">İptal</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+            <button type="submit" disabled={loading || uploading} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ekle"}
             </button>
           </div>

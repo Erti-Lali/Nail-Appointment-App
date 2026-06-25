@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Jost, Cormorant_Garamond } from "next/font/google";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
-const inter = Inter({
+const jost = Jost({
   subsets: ["latin"],
   variable: "--font-inter",
+  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-playfair",
+  weight: ["300", "400", "600", "700"],
   display: "swap",
 });
 
@@ -36,7 +38,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#0A0A0A",
+  themeColor: "#C4356A",
 };
 
 export default function RootLayout({
@@ -45,17 +47,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="tr" className={`${jost.variable} ${cormorant.variable}`}>
       <body className="bg-black text-white antialiased">
         <Providers>
           {children}
           <Toaster
-            theme="dark"
+            position="top-right"
             toastOptions={{
               style: {
-                background: "#1A1A1A",
-                border: "1px solid #2A2A2A",
-                color: "#FAFAFA",
+                background: "#FFFFFF",
+                border: "1px solid #F0DDE5",
+                color: "#2D0A1A",
+                fontFamily: "var(--font-inter)",
               },
             }}
           />

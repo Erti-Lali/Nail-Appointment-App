@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { addMinutes, format } from "date-fns";
+import { scheduleAppointmentReminders } from "@/lib/reminders";
 
 // Public online booking endpoint.
 // Anonymous visitors can't insert customers/appointments directly (RLS blocks it),
@@ -26,11 +27,12 @@ interface BookingBody {
 export async function GET(request: NextRequest) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
-    return NextResponse.json({ busy: [] });
+    return NextResponse.json({ busy: [], slotDuration: 30, autoConfirm: false });
   }
   const { searchParams } = new URL(request.url);
   const staffId = searchParams.get("staffId");
   const date = searchParams.get("date"); // yyyy-MM-dd
+  const tenantId = searchParams.get("tenantId"); // optional — for slot duration / auto-confirm
   if (!staffId || !date) {
     return NextResponse.json({ error: "staffId ve date gerekli" }, { status: 400 });
   }
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
   const [y, m, d] = date.split("-").map(Number);
   const dayKey = DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
 
-  const [busyRes, hoursRes, offRes] = await Promise.all([
+  const [busyRes, hoursRes, offRes, tenantRes] = await Promise.all([
     supabase
       .from("appointments")
       .select("starts_at, ends_at")
@@ -67,6 +69,10 @@ export async function GET(request: NextRequest) {
       .lte("start_date", date)
       .gte("end_date", date)
       .limit(1),
+    // Tenant slot settings — defaults apply when tenantId is missing/not found.
+    tenantId
+      ? supabase.from("tenants").select("slot_duration_minutes, auto_confirm").eq("id", tenantId).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const wh = hoursRes.data;
@@ -82,7 +88,11 @@ export async function GET(request: NextRequest) {
           breakEnd: wh.break_end ? wh.break_end.slice(0, 5) : null,
         };
 
-  return NextResponse.json({ busy: busyRes.data ?? [], workingHours, onLeave });
+  const tenant = tenantRes.data as { slot_duration_minutes?: number; auto_confirm?: boolean } | null;
+  const slotDuration = tenant?.slot_duration_minutes ?? 30;
+  const autoConfirm = tenant?.auto_confirm ?? false;
+
+  return NextResponse.json({ busy: busyRes.data ?? [], workingHours, onLeave, slotDuration, autoConfirm });
 }
 
 export async function POST(request: NextRequest) {
@@ -133,18 +143,26 @@ export async function POST(request: NextRequest) {
   const price = svcRows.reduce((sum, s) => sum + Number(s.price ?? 0), 0);
   const endsAt = format(addMinutes(new Date(startsAt), duration), "yyyy-MM-dd'T'HH:mm:ss");
 
+  // Auto-confirm: when the studio enabled it, the appointment is created already
+  // confirmed instead of pending. reminder_hours drives the reminder schedule.
+  const { data: tenantRow } = await supabase
+    .from("tenants").select("auto_confirm, reminder_hours, name").eq("id", tenantId).maybeSingle();
+  const status = tenantRow?.auto_confirm === true ? "confirmed" : "pending";
+
   // Normalize phone for find-or-create
   const phone = customer.phone.replace(/\s+/g, "");
 
   // Find existing customer by (tenant_id, phone) — unique constraint
   const { data: existing } = await supabase
     .from("customers")
-    .select("id")
+    .select("id, profile_id")
     .eq("tenant_id", tenantId)
     .eq("phone", phone)
     .maybeSingle();
 
   let customerId = existing?.id as string | undefined;
+  // A returning customer who uses the app has a linked profile → push reminders.
+  const customerProfileId = (existing?.profile_id as string | null) ?? null;
 
   if (!customerId) {
     const { data: created, error: custErr } = await supabase
@@ -165,7 +183,7 @@ export async function POST(request: NextRequest) {
     customerId = created.id;
   }
 
-  // Create appointment (status pending → studio confirms)
+  // Create appointment (confirmed when the studio auto-confirms, else pending)
   const { data: appointment, error: apptErr } = await supabase
     .from("appointments")
     .insert({
@@ -180,7 +198,7 @@ export async function POST(request: NextRequest) {
       final_price: price,
       discount_amount: 0,
       deposit_paid: 0,
-      status: "pending",
+      status,
       booked_via: "online",
       customer_notes: notes?.trim() || null,
     })
@@ -208,5 +226,18 @@ export async function POST(request: NextRequest) {
   }));
   await supabase.from("appointment_services").insert(asRows);
 
-  return NextResponse.json({ success: true, appointmentId: appointment.id });
+  // Schedule SMS/email reminders (best-effort — never block the booking).
+  try {
+    await scheduleAppointmentReminders(supabase, {
+      appointmentId: appointment.id,
+      tenantId,
+      startsAt,
+      reminderHours: tenantRow?.reminder_hours,
+      phone,
+      email: customer.email?.trim() || null,
+      profileId: customerProfileId,
+    });
+  } catch { /* hatırlatma planlanamadı — randevu yine de oluştu */ }
+
+  return NextResponse.json({ success: true, appointmentId: appointment.id, status });
 }

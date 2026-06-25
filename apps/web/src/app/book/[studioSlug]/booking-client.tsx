@@ -9,10 +9,11 @@ import {
 } from "lucide-react";
 import { formatPrice, minutesToDisplay, isValidPhone } from "@nailstudio/shared";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Heart } from "lucide-react";
 
 const STEPS = ["Hizmet", "Personel", "Tarih & Saat", "Bilgiler"];
 
-const SLOT_STEP = 30; // minutes between slots
 const toMin = (hhmm: string) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
 const toHHMM = (mins: number) => `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
 
@@ -34,11 +35,37 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
   const [busy, setBusy] = useState<{ starts_at: string; ends_at: string }[]>([]);
   const [workingHours, setWorkingHours] = useState<WorkingHours | null>(null);
   const [onLeave, setOnLeave] = useState(false);
+  const [slotDuration, setSlotDuration] = useState(30); // step between slots, from tenant settings
+  const [autoConfirm, setAutoConfirm] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", email: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Favorites — only offered to a logged-in customer on the success screen.
+  const [favToken, setFavToken] = useState<string | null>(null);
+  const [favAdding, setFavAdding] = useState(false);
+  const [favDone, setFavDone] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data }) => setFavToken(data.session?.access_token ?? null));
+  }, []);
+
+  const addFavorites = async () => {
+    if (!favToken) return;
+    setFavAdding(true);
+    try {
+      const headers = { "Content-Type": "application/json", Authorization: `Bearer ${favToken}` };
+      await fetch("/api/customer/favorites", { method: "POST", headers, body: JSON.stringify({ type: "studio", tenantId: tenant.id }) });
+      for (const id of serviceIds) {
+        await fetch("/api/customer/favorites", { method: "POST", headers, body: JSON.stringify({ type: "service", serviceId: id }) });
+      }
+      setFavDone(true);
+    } catch {
+      /* sessiz geç — favori opsiyoneldir */
+    }
+    setFavAdding(false);
+  };
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
   const totalDuration = selectedServices.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0);
@@ -57,9 +84,15 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
     if (step !== 2 || !staffId) return;
     setLoadingSlots(true);
     setTime(null);
-    fetch(`/api/book?staffId=${staffId}&date=${date}`)
+    fetch(`/api/book?staffId=${staffId}&date=${date}&tenantId=${tenant.id}`)
       .then((r) => r.json())
-      .then((d) => { setBusy(d.busy ?? []); setWorkingHours(d.workingHours ?? null); setOnLeave(!!d.onLeave); })
+      .then((d) => {
+        setBusy(d.busy ?? []);
+        setWorkingHours(d.workingHours ?? null);
+        setOnLeave(!!d.onLeave);
+        setSlotDuration(d.slotDuration ?? 30);
+        setAutoConfirm(!!d.autoConfirm);
+      })
       .catch(() => { setBusy([]); setWorkingHours(null); setOnLeave(false); })
       .finally(() => setLoadingSlots(false));
   }, [step, staffId, date]);
@@ -72,15 +105,16 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
     const close = toMin(workingHours.end);
     const bStart = workingHours.breakStart ? toMin(workingHours.breakStart) : null;
     const bEnd = workingHours.breakEnd ? toMin(workingHours.breakEnd) : null;
+    const step = slotDuration > 0 ? slotDuration : 30;
     const out: string[] = [];
-    for (let t = open; t + totalDuration <= close; t += SLOT_STEP) {
+    for (let t = open; t + totalDuration <= close; t += step) {
       const end = t + totalDuration;
       // skip if appointment overlaps the break window
       if (bStart != null && bEnd != null && t < bEnd && bStart < end) continue;
       out.push(toHHMM(t));
     }
     return out;
-  }, [workingHours, totalDuration]);
+  }, [workingHours, totalDuration, slotDuration]);
 
   const slotTaken = (slot: string) => {
     if (totalDuration === 0) return false;
@@ -151,9 +185,13 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
           <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-5">
             <CalendarCheck className="w-8 h-8 text-brand" />
           </div>
-          <h1 className="text-2xl font-bold text-ink">Randevu Talebiniz Alındı! 🎉</h1>
+          <h1 className="text-2xl font-bold text-ink">
+            {autoConfirm ? "Randevunuz Onaylandı! 🎉" : "Randevu Talebiniz Alındı! 🎉"}
+          </h1>
           <p className="text-ink-muted mt-2">
-            {tenant.name} sizinle en kısa sürede iletişime geçecek.
+            {autoConfirm
+              ? `${tenant.name} sizi bekliyor olacak.`
+              : `${tenant.name} sizinle en kısa sürede iletişime geçecek.`}
           </p>
           <div className="bg-brand-soft border border-brand/20 rounded-2xl p-4 mt-6 text-left space-y-2 text-sm">
             <Row label="Hizmetler" value={selectedServices.map((s) => s.name).join(", ")} />
@@ -163,9 +201,24 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
             <Row label="Ücret" value={formatPrice(totalPrice, currency)} />
           </div>
           <p className="text-ink-subtle text-xs mt-5">
-            Randevu durumu onaylandığında bilgilendirileceksiniz.
+            {autoConfirm
+              ? "Randevunuz onaylandı. Görüşmek üzere!"
+              : "Randevu durumu onaylandığında bilgilendirileceksiniz."}
           </p>
-          <a href="/hesabim/kayit" className="mt-5 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all">
+          {favToken && (
+            favDone ? (
+              <div className="mt-5 inline-flex items-center justify-center gap-2 w-full bg-brand-soft text-brand font-semibold py-2.5 rounded-xl">
+                <Heart className="w-4 h-4 fill-brand" /> Favorilere eklendi
+              </div>
+            ) : (
+              <button onClick={addFavorites} disabled={favAdding}
+                className="mt-5 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all disabled:opacity-50">
+                {favAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Heart className="w-4 h-4" />}
+                Stüdyo ve hizmetleri favorilere ekle
+              </button>
+            )
+          )}
+          <a href={favToken ? "/hesabim" : "/hesabim/kayit"} className="mt-3 inline-flex items-center justify-center gap-2 w-full border border-brand/40 hover:border-brand text-brand font-semibold py-2.5 rounded-xl transition-all">
             Randevularımı takip et
           </a>
         </div>
@@ -269,7 +322,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
                 className={cn("w-full flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all bg-surface",
                   staffId === m.id ? "border-brand ring-2 ring-brand/15" : "border-line hover:border-brand/40")}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold shrink-0 overflow-hidden"
-                  style={{ backgroundColor: `${m.color ?? "#E91E8C"}20`, color: m.color ?? "#E91E8C" }}>
+                  style={{ backgroundColor: `${m.color ?? "#C4356A"}20`, color: m.color ?? "#C4356A" }}>
                   {m.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.avatar_url} alt={m.display_name} className="w-full h-full object-cover" />

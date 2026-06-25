@@ -6,7 +6,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts, Playfair_Display_700Bold } from "@expo-google-fonts/playfair-display";
 import * as SplashScreen from "expo-splash-screen";
-import { AuthProvider } from "../lib/auth";
+import * as Notifications from "expo-notifications";
+import { AuthProvider, useAuth } from "../lib/auth";
+import { registerPushToken } from "../lib/push";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -15,6 +17,23 @@ const queryClient = new QueryClient({
     queries: { staleTime: 60 * 1000, retry: 1 },
   },
 });
+
+// Registers the device's push token once the user is authenticated, and keeps a
+// foreground listener so notifications received while the app is open still show.
+function PushManager() {
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (session) registerPushToken();
+  }, [session]);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener(() => {});
+    return () => sub.remove();
+  }, []);
+
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ Playfair_Display_700Bold });
@@ -30,6 +49,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
+            <PushManager />
             <StatusBar style="light" backgroundColor="#0A0A0A" />
             <Stack
               screenOptions={{

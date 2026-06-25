@@ -1,56 +1,28 @@
 "use client";
 
-import { Calendar, Users, TrendingUp, Star } from "lucide-react";
+import { CalendarDays, Wallet, Users, Cake } from "lucide-react";
 import { formatPrice } from "@nailstudio/shared";
 
 interface DashboardStatsProps {
   appointmentsToday: number;
-  totalCustomers: number;
   monthRevenue: number;
+  totalCustomers: number;
+  birthdaysThisWeek: number;
 }
 
 export function DashboardStats({
   appointmentsToday,
-  totalCustomers,
   monthRevenue,
+  totalCustomers,
+  birthdaysThisWeek,
 }: DashboardStatsProps) {
+  // Tek disiplinli aksan (gül) — sayılar hiyerarşiyi taşır, ikonlar değil.
+  // Ciro studyo sahibinin önemsediği sayıdır: display yüz + hafif vurgulu kart.
   const stats = [
-    {
-      icon: Calendar,
-      label: "Bugünkü Randevular",
-      value: appointmentsToday.toString(),
-      sub: "aktif randevu",
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
-    },
-    {
-      icon: Users,
-      label: "Toplam Müşteri",
-      value: totalCustomers.toLocaleString("tr-TR"),
-      sub: "kayıtlı müşteri",
-      color: "text-purple-400",
-      bg: "bg-purple-500/10",
-      border: "border-purple-500/20",
-    },
-    {
-      icon: TrendingUp,
-      label: "Bu Ay Ciro",
-      value: formatPrice(monthRevenue, "TRY"),
-      sub: "bu ay toplam",
-      color: "text-gold-500",
-      bg: "bg-gold-500/10",
-      border: "border-gold-500/20",
-    },
-    {
-      icon: Star,
-      label: "Ortalama Puan",
-      value: "4.8",
-      sub: "müşteri değerlendirmesi",
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/20",
-    },
+    { icon: CalendarDays, label: "Bugünkü randevu", value: appointmentsToday.toString(), sub: "planlanan" },
+    { icon: Wallet, label: "Bu ay ciro", value: formatPrice(monthRevenue, "TRY"), sub: "tamamlanan", hero: true },
+    { icon: Users, label: "Toplam müşteri", value: totalCustomers.toLocaleString("tr-TR"), sub: "kayıtlı" },
+    { icon: Cake, label: "Bu hafta doğum günü", value: birthdaysThisWeek.toString(), sub: "kutlanacak" },
   ];
 
   return (
@@ -58,18 +30,20 @@ export function DashboardStats({
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className={`card border ${stat.border} group hover:shadow-card transition-all duration-200`}
+          className={`card transition-all duration-200 hover:shadow-card ${
+            stat.hero ? "border-brand/30 bg-brand-soft/40" : ""
+          }`}
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-white/50 text-xs font-medium mb-3">{stat.label}</p>
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
-              <p className="text-white/30 text-xs mt-1">{stat.sub}</p>
-            </div>
-            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-ink-subtle text-xs font-medium">{stat.label}</p>
+            <div className="w-9 h-9 rounded-xl bg-brand-soft flex items-center justify-center shrink-0">
+              <stat.icon className="w-[18px] h-[18px] text-brand" strokeWidth={1.75} />
             </div>
           </div>
+          <p className={`mt-3 leading-tight text-ink ${stat.hero ? "font-display text-3xl font-bold" : "text-2xl font-bold"}`}>
+            {stat.value}
+          </p>
+          <p className="text-ink-subtle text-xs mt-1">{stat.sub}</p>
         </div>
       ))}
     </div>

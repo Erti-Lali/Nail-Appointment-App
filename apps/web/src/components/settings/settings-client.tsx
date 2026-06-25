@@ -79,7 +79,7 @@ export function SettingsClient({ user, profile, tenant, subscription }: any) {
           {tab === "studio" && <StudioForm tenant={tenant} />}
           {tab === "appointment" && <AppointmentForm tenant={tenant} />}
           {tab === "subscription" && <SubscriptionView subscription={subscription} />}
-          {tab === "security" && <SecurityForm />}
+          {tab === "security" && <SecurityForm email={user?.email} />}
         </div>
       </div>
     </div>
@@ -92,25 +92,35 @@ function StudioForm({ tenant }: { tenant: any }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: tenant?.name ?? "",
+    slug: tenant?.slug ?? "",
     phone: tenant?.phone ?? "",
     email: tenant?.email ?? "",
     address: tenant?.address ?? "",
     city: tenant?.city ?? "",
+    description: tenant?.description ?? "",
     instagram_handle: tenant?.instagram_handle ?? "",
     google_maps_url: tenant?.google_maps_url ?? "",
   });
 
   const set = (k: keyof typeof form) => (e: any) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  // URL slug: küçük harf, boşluk → tire, geçersiz karakterleri at
+  const setSlug = (e: any) =>
+    setForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "") }));
 
   const save = async () => {
     if (!tenant?.id) return toast.error("Stüdyo bağlı değil");
+    if (!form.name.trim()) return toast.error("Stüdyo adı zorunlu");
+    const slug = form.slug.trim().replace(/^-+|-+$/g, "");
+    if (!slug) return toast.error("URL adresi (slug) zorunlu");
     setSaving(true);
     const { error } = await supabase.from("tenants").update({
       name: form.name.trim(),
+      slug,
       phone: form.phone.trim() || null,
       email: form.email.trim() || null,
       address: form.address.trim() || null,
       city: form.city.trim() || null,
+      description: form.description.trim() || null,
       instagram_handle: form.instagram_handle.trim().replace(/^@/, "") || null,
       google_maps_url: form.google_maps_url.trim() || null,
     }).eq("id", tenant.id);
@@ -124,6 +134,13 @@ function StudioForm({ tenant }: { tenant: any }) {
       <div>
         <label className={labelCls}>Stüdyo Adı *</label>
         <input className={inputCls} value={form.name} onChange={set("name")} placeholder="NailStudio 101" />
+      </div>
+      <div>
+        <label className={labelCls}>URL Adresi (slug) *</label>
+        <input className={inputCls} value={form.slug} onChange={setSlug} placeholder="nailstudio101" />
+        <p className="text-ink-subtle text-xs mt-1">
+          Randevu sayfanız: <span className="text-brand font-medium">nailstudio101.com/book/{form.slug || "..."}</span>
+        </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -156,6 +173,11 @@ function StudioForm({ tenant }: { tenant: any }) {
         <label className={labelCls}>Google Maps Bağlantısı</label>
         <input className={inputCls} value={form.google_maps_url} onChange={set("google_maps_url")} placeholder="https://maps.google.com/..." />
       </div>
+      <div>
+        <label className={labelCls}>Açıklama</label>
+        <textarea className={inputCls + " min-h-[96px] resize-y"} value={form.description} onChange={set("description")}
+          placeholder="Stüdyonuzu kısaca tanıtın (randevu sayfasında görünür)" />
+      </div>
     </Section>
   );
 }
@@ -165,8 +187,10 @@ function AppointmentForm({ tenant }: { tenant: any }) {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    slot_duration_minutes: tenant?.slot_duration_minutes ?? 30,
     booking_advance_days: tenant?.booking_advance_days ?? 30,
     cancellation_hours: tenant?.cancellation_hours ?? 24,
+    auto_confirm: tenant?.auto_confirm ?? false,
     reminder_hours: (tenant?.reminder_hours ?? [24, 2]).join(", "),
   });
 
@@ -176,8 +200,10 @@ function AppointmentForm({ tenant }: { tenant: any }) {
       .split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n));
     setSaving(true);
     const { error } = await supabase.from("tenants").update({
+      slot_duration_minutes: Number(form.slot_duration_minutes) || 30,
       booking_advance_days: Number(form.booking_advance_days) || 30,
       cancellation_hours: Number(form.cancellation_hours) || 24,
+      auto_confirm: form.auto_confirm,
       reminder_hours: reminders.length ? reminders : [24, 2],
     }).eq("id", tenant.id);
     setSaving(false);
@@ -187,6 +213,17 @@ function AppointmentForm({ tenant }: { tenant: any }) {
 
   return (
     <Section title="Randevu Ayarları" onSave={save} saving={saving}>
+      <div>
+        <label className={labelCls}>Randevu slot süresi</label>
+        <select className={inputCls} value={form.slot_duration_minutes}
+          onChange={(e) => setForm((f) => ({ ...f, slot_duration_minutes: Number(e.target.value) }))}>
+          <option value={15}>15 dakika</option>
+          <option value={30}>30 dakika</option>
+          <option value={45}>45 dakika</option>
+          <option value={60}>60 dakika</option>
+        </select>
+        <p className="text-ink-subtle text-xs mt-1">Randevu takviminde gösterilecek zaman aralığı.</p>
+      </div>
       <div>
         <label className={labelCls}>Önceden randevu alınabilecek gün sayısı</label>
         <input type="number" min={1} className={inputCls} value={form.booking_advance_days}
@@ -205,6 +242,17 @@ function AppointmentForm({ tenant }: { tenant: any }) {
           onChange={(e) => setForm((f) => ({ ...f, reminder_hours: e.target.value }))} placeholder="24, 2" />
         <p className="text-ink-subtle text-xs mt-1">Randevudan kaç saat önce hatırlatma gönderilsin (virgülle ayırın).</p>
       </div>
+      <label className="flex items-start gap-3 p-3 rounded-xl border border-line bg-surface-soft cursor-pointer">
+        <input type="checkbox" className="mt-0.5 w-4 h-4 accent-brand"
+          checked={form.auto_confirm}
+          onChange={(e) => setForm((f) => ({ ...f, auto_confirm: e.target.checked }))} />
+        <span>
+          <span className="block text-sm font-medium text-ink">Randevuları otomatik onayla</span>
+          <span className="block text-ink-subtle text-xs mt-0.5">
+            Kapalıyken yeni randevular "Bekliyor" durumunda gelir ve manuel onay gerektirir.
+          </span>
+        </span>
+      </label>
     </Section>
   );
 }
@@ -212,6 +260,12 @@ function AppointmentForm({ tenant }: { tenant: any }) {
 // ─── Subscription (read-only) ─────────────────────────────
 function SubscriptionView({ subscription }: { subscription: any }) {
   const planLabels: Record<string, string> = { starter: "Başlangıç", pro: "Profesyonel", enterprise: "Kurumsal" };
+  const planFeatures: Record<string, string[]> = {
+    starter: ["1 stüdyo", "Online randevu sayfası", "SMS hatırlatma", "Temel raporlar"],
+    pro: ["Başlangıç'taki her şey", "Sınırsız personel", "Gelişmiş analitik", "E-posta kampanyaları"],
+    enterprise: ["Profesyonel'deki her şey", "Çoklu şube yönetimi", "API erişimi", "Öncelikli destek"],
+  };
+  const features = subscription ? (planFeatures[subscription.plan] ?? []) : [];
   const statusLabels: Record<string, string> = {
     active: "Aktif", trialing: "Deneme", past_due: "Ödeme Gecikti", canceled: "İptal Edildi", paused: "Duraklatıldı",
   };
@@ -241,9 +295,21 @@ function SubscriptionView({ subscription }: { subscription: any }) {
               <Info label="Deneme bitiş" value={formatDate(subscription.trial_ends_at)} />
             )}
             {subscription.current_period_end && (
-              <Info label="Dönem bitiş" value={formatDate(subscription.current_period_end)} />
+              <Info label={subscription.status === "trialing" ? "Sonraki yenileme" : "Dönem bitiş"} value={formatDate(subscription.current_period_end)} />
             )}
           </div>
+          {features.length > 0 && (
+            <div className="border-t border-line pt-4">
+              <p className="text-xs font-medium text-ink-subtle mb-3">Plan özellikleri</p>
+              <ul className="space-y-2">
+                {features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-ink">
+                    <Check className="w-4 h-4 text-brand shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <button disabled className="btn-gold opacity-50 cursor-not-allowed w-full">
             Planı Yükselt (yakında)
           </button>
@@ -254,31 +320,44 @@ function SubscriptionView({ subscription }: { subscription: any }) {
 }
 
 // ─── Security ─────────────────────────────────────────────
-function SecurityForm() {
+function SecurityForm({ email }: { email?: string }) {
   const supabase = createClient();
   const [saving, setSaving] = useState(false);
-  const [pw, setPw] = useState({ next: "", confirm: "" });
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
 
   const save = async () => {
-    if (pw.next.length < 6) return toast.error("Şifre en az 6 karakter olmalı");
+    if (!pw.current) return toast.error("Mevcut şifrenizi girin");
+    if (pw.next.length < 8) return toast.error("Yeni şifre en az 8 karakter olmalı");
     if (pw.next !== pw.confirm) return toast.error("Şifreler eşleşmiyor");
+    if (!email) return toast.error("Oturum bilgisi okunamadı");
     setSaving(true);
+    // Supabase updateUser mevcut şifreyi doğrulamaz — önce yeniden giriş ile teyit et.
+    const { error: reauthError } = await supabase.auth.signInWithPassword({ email, password: pw.current });
+    if (reauthError) {
+      setSaving(false);
+      return toast.error("Mevcut şifre hatalı");
+    }
     const { error } = await supabase.auth.updateUser({ password: pw.next });
     setSaving(false);
     if (error) toast.error("Şifre değiştirilemedi", { description: error.message });
-    else { toast.success("Şifre güncellendi"); setPw({ next: "", confirm: "" }); }
+    else { toast.success("Şifre güncellendi"); setPw({ current: "", next: "", confirm: "" }); }
   };
 
   return (
     <Section title="Güvenlik" onSave={save} saving={saving} saveLabel="Şifreyi Değiştir">
       <div>
+        <label className={labelCls}>Mevcut Şifre</label>
+        <input type="password" autoComplete="current-password" className={inputCls} value={pw.current}
+          onChange={(e) => setPw((p) => ({ ...p, current: e.target.value }))} placeholder="••••••••" />
+      </div>
+      <div>
         <label className={labelCls}>Yeni Şifre</label>
-        <input type="password" className={inputCls} value={pw.next}
-          onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))} placeholder="••••••••" />
+        <input type="password" autoComplete="new-password" className={inputCls} value={pw.next}
+          onChange={(e) => setPw((p) => ({ ...p, next: e.target.value }))} placeholder="En az 8 karakter" />
       </div>
       <div>
         <label className={labelCls}>Yeni Şifre (Tekrar)</label>
-        <input type="password" className={inputCls} value={pw.confirm}
+        <input type="password" autoComplete="new-password" className={inputCls} value={pw.confirm}
           onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))} placeholder="••••••••" />
       </div>
     </Section>

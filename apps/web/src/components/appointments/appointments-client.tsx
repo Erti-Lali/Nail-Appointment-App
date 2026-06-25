@@ -33,6 +33,7 @@ export function AppointmentsClient({
   initialDate,
 }: AppointmentsClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<View>((initialView as View) ?? "week");
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [appointments, setAppointments] = useState(initialAppointments);
@@ -47,6 +48,15 @@ export function AppointmentsClient({
   useEffect(() => {
     setAppointments(initialAppointments);
   }, [initialAppointments]);
+
+  // Dashboard hızlı işlem derin linki (?new=1) → yeni randevu modalını aç.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setShowNewModal(true);
+      router.replace(`/appointments?view=${view}&date=${currentDate}`, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const navigateWeek = (direction: "prev" | "next") => {
     const date = new Date(currentDate);

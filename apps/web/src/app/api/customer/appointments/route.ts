@@ -50,9 +50,9 @@ export async function GET(req: NextRequest) {
   const { data: appts } = await admin
     .from("appointments")
     .select(
-      "id, starts_at, ends_at, status, final_price, duration_minutes, " +
-      "service:services(name), staff:staff(display_name), tenant:tenants(name, slug), " +
-      "appointment_services(service:services(name))"
+      "id, starts_at, ends_at, status, final_price, duration_minutes, staff_id, tenant_id, service_id, " +
+      "service:services(name), staff:staff(display_name, color), tenant:tenants(name, slug, city), " +
+      "appointment_services(service:services(id, name))"
     )
     .in("customer_id", customerIds)
     .order("starts_at", { ascending: false });

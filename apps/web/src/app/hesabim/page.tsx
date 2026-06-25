@@ -1,125 +1,154 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { formatPrice } from "@nailstudio/shared";
-import { wallTime } from "@/lib/datetime";
-import { StatusBadge, FullPageSpinner, Button } from "@/components/ui";
-import { Sparkles, LogOut, CalendarDays, Scissors, User as UserIcon, Store, CalendarPlus } from "lucide-react";
+import { toast } from "sonner";
+import { CustomerShell } from "@/components/customer/customer-shell";
+import { AppointmentCard } from "@/components/customer/appointment-card";
+import { Spinner } from "@/components/ui";
 
 export default function MyAccountPage() {
-  const router = useRouter();
   const supabase = createClient();
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
-  const [firstName, setFirstName] = useState("");
   const [appointments, setAppointments] = useState<any[]>([]);
+  // tenant_id -> favorite row id (studios the customer has favorited)
+  const [favStudios, setFavStudios] = useState<Map<string, string>>(new Map());
+
+  const loadAppointments = useCallback(async (tk: string) => {
+    const res = await fetch("/api/customer/appointments", { headers: { Authorization: `Bearer ${tk}` } });
+    if (res.ok) { const d = await res.json(); setAppointments(d.appointments ?? []); }
+  }, []);
+
+  const loadFavorites = useCallback(async (tk: string) => {
+    const res = await fetch("/api/customer/favorites", { headers: { Authorization: `Bearer ${tk}` } });
+    if (res.ok) {
+      const d = await res.json();
+      const m = new Map<string, string>();
+      for (const f of d.favorites ?? []) {
+        if (f.type === "studio" && f.studio?.id) m.set(f.studio.id, f.id);
+      }
+      setFavStudios(m);
+    }
+  }, []);
 
   useEffect(() => {
-    async function load() {
+    async function init() {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { router.replace("/hesabim/giris"); return; }
-      const res = await fetch("/api/customer/appointments", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (res.ok) {
-        const d = await res.json();
-        setFirstName(d.firstName ?? "");
-        setAppointments(d.appointments ?? []);
-      }
+      if (!session) return; // shell handles redirect
+      setToken(session.access_token);
+      await Promise.all([loadAppointments(session.access_token), loadFavorites(session.access_token)]);
       setLoading(false);
     }
-    load();
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signOut = async () => { await supabase.auth.signOut(); router.push("/hesabim/giris"); };
-
-  if (loading) return <FullPageSpinner />;
+  const toggleFavoriteStudio = async (tenantId: string) => {
+    const existingId = favStudios.get(tenantId);
+    // optimistic
+    setFavStudios((prev) => {
+      const m = new Map(prev);
+      if (existingId) m.delete(tenantId); else m.set(tenantId, "pending");
+      return m;
+    });
+    if (existingId) {
+      const res = await fetch("/api/customer/favorites", {
+        method: "DELETE", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ favoriteId: existingId }),
+      });
+      if (!res.ok) { toast.error("İşlem başarısız"); loadFavorites(token); }
+      else toast.success("Favorilerden çıkarıldı");
+    } else {
+      const res = await fetch("/api/customer/favorites", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: "studio", tenantId }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(d.error ?? "İşlem başarısız"); loadFavorites(token); }
+      else { setFavStudios((prev) => new Map(prev).set(tenantId, d.id)); toast.success("Favorilere eklendi"); }
+    }
+  };
 
   const now = Date.now();
-  const upcoming = appointments.filter((a) => new Date(a.starts_at).getTime() >= now && a.status !== "canceled" && a.status !== "no_show");
-  const past = appointments.filter((a) => !(new Date(a.starts_at).getTime() >= now && a.status !== "canceled" && a.status !== "no_show"));
+  const isUpcoming = (a: any) => new Date(a.starts_at).getTime() >= now && a.status !== "canceled" && a.status !== "no_show";
+  const upcoming = appointments.filter(isUpcoming);
+  const past = appointments.filter((a) => !isUpcoming(a));
+  const canModify = (a: any) => isUpcoming(a) && (a.status === "pending" || a.status === "confirmed");
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <header className="sticky top-0 z-20 bg-surface border-b border-line">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><Sparkles className="w-5 h-5 text-surface" /></div>
-            <span className="font-bold text-sm">Randevularım</span>
-          </Link>
-          <button onClick={signOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-red-500 px-3 py-2 transition-colors">
-            <LogOut className="w-4 h-4" /> Çıkış
-          </button>
-        </div>
-      </header>
+    <CustomerShell active="appointments">
+      <div className="mb-6">
+        <h1 className="text-2xl font-display font-bold text-ink">Randevularım</h1>
+        <p className="text-ink-subtle text-sm mt-1">Yaklaşan ve geçmiş randevularınızı buradan yönetin.</p>
+      </div>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-display font-bold">Merhaba{firstName ? `, ${firstName}` : ""} 👋</h1>
-          <p className="text-ink-subtle mt-1 text-sm">Randevularınızı buradan takip edebilirsiniz.</p>
+      {loading ? (
+        <div className="flex justify-center py-16"><Spinner /></div>
+      ) : appointments.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="space-y-8">
+          <Section title="Yaklaşan" count={upcoming.length} empty="Yaklaşan randevunuz yok.">
+            {upcoming.map((a, i) => (
+              <AppointmentCard
+                key={a.id} appointment={a} token={token} index={i}
+                canModify={canModify(a)}
+                isFavorite={favStudios.has(a.tenant_id)}
+                onToggleFavorite={() => toggleFavoriteStudio(a.tenant_id)}
+                onChanged={() => loadAppointments(token)}
+              />
+            ))}
+          </Section>
+          <Section title="Geçmiş" count={past.length} empty="Geçmiş randevu yok.">
+            {past.map((a, i) => (
+              <AppointmentCard
+                key={a.id} appointment={a} token={token} index={i}
+                canModify={false}
+                isFavorite={favStudios.has(a.tenant_id)}
+                onToggleFavorite={() => toggleFavoriteStudio(a.tenant_id)}
+                onChanged={() => loadAppointments(token)}
+              />
+            ))}
+          </Section>
         </div>
-
-        {appointments.length === 0 ? (
-          <div className="bg-surface border border-line rounded-2xl p-8 text-center">
-            <CalendarDays className="w-10 h-10 text-brand/40 mx-auto mb-3" />
-            <p className="text-ink-muted">Henüz randevunuz yok.</p>
-            <p className="text-ink-subtle text-xs mt-1">
-              Online randevu aldığınızda, kayıt olurken kullandığınız telefon numarasıyla burada görünür.
-            </p>
-          </div>
-        ) : (
-          <>
-            <Section title="Yaklaşan" items={upcoming} empty="Yaklaşan randevunuz yok." />
-            <Section title="Geçmiş" items={past} empty="Geçmiş randevu yok." />
-          </>
-        )}
-      </main>
-    </div>
+      )}
+    </CustomerShell>
   );
 }
 
-function Section({ title, items, empty }: { title: string; items: any[]; empty: string }) {
+function Section({ title, count, empty, children }: { title: string; count: number; empty: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="font-semibold mb-3">{title}</h2>
-      {items.length === 0 ? (
-        <p className="text-ink-subtle text-sm">{empty}</p>
-      ) : (
-        <div className="space-y-3">
-          {items.map((a) => {
-            const services = a.appointment_services?.length
-              ? a.appointment_services.map((x: any) => x.service?.name).filter(Boolean)
-              : a.service?.name ? [a.service.name] : [];
-            return (
-              <div key={a.id} className="bg-surface border border-line rounded-2xl p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-sm font-semibold">
-                      <CalendarDays className="w-4 h-4 text-brand shrink-0" />
-                      {String(a.starts_at).slice(0, 10)} · {wallTime(a.starts_at)}–{wallTime(a.ends_at)}
-                    </div>
-                    <p className="flex items-center gap-2 text-sm text-ink-muted mt-1.5 truncate"><Scissors className="w-3.5 h-3.5 shrink-0" /> {services.join(", ") || "—"}</p>
-                    <p className="flex items-center gap-2 text-sm text-ink-muted mt-1"><UserIcon className="w-3.5 h-3.5 shrink-0" /> {a.staff?.display_name ?? "—"}</p>
-                    <p className="flex items-center gap-2 text-sm text-ink-subtle mt-1"><Store className="w-3.5 h-3.5 shrink-0" /> {a.tenant?.name ?? "—"}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <StatusBadge status={a.status} />
-                    <p className="text-brand font-semibold text-sm mt-2">{formatPrice(a.final_price, "TRY")}</p>
-                  </div>
-                </div>
-                {a.tenant?.slug && (
-                  <Link href={`/book/${a.tenant.slug}`} className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:text-brand-dark">
-                    <CalendarPlus className="w-3.5 h-3.5" /> Tekrar randevu al
-                  </Link>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <h2 className="font-semibold text-ink mb-3 flex items-center gap-2">
+        {title}
+        <span className="text-xs font-medium text-ink-subtle bg-surface-soft border border-line rounded-full px-2 py-0.5">{count}</span>
+      </h2>
+      {count === 0 ? <p className="text-ink-subtle text-sm">{empty}</p> : <div className="space-y-3">{children}</div>}
     </section>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="bg-surface border border-line rounded-3xl p-10 text-center">
+      <svg viewBox="0 0 200 160" className="w-44 h-36 mx-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="38" y="36" width="124" height="104" rx="14" fill="rgb(var(--ns-brand-soft))" stroke="rgb(var(--ns-brand) / 0.35)" strokeWidth="2" />
+        <rect x="38" y="36" width="124" height="28" rx="14" fill="rgb(var(--ns-brand) / 0.12)" />
+        <line x1="66" y1="28" x2="66" y2="46" stroke="rgb(var(--ns-brand))" strokeWidth="4" strokeLinecap="round" />
+        <line x1="134" y1="28" x2="134" y2="46" stroke="rgb(var(--ns-brand))" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="74" cy="86" r="6" fill="rgb(var(--ns-brand) / 0.4)" />
+        <circle cx="100" cy="86" r="6" fill="rgb(var(--ns-brand) / 0.4)" />
+        <circle cx="126" cy="86" r="6" fill="rgb(var(--ns-brand) / 0.4)" />
+        <circle cx="74" cy="110" r="6" fill="rgb(var(--ns-brand) / 0.4)" />
+        <path d="M118 108c2-5 10-5 11 1 1-6 9-6 11-1 2 5-7 12-11 14-4-2-13-9-11-14Z" fill="rgb(var(--ns-brand))" />
+        <path d="M150 44l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="rgb(var(--ns-brand) / 0.5)" />
+      </svg>
+      <h3 className="font-display text-xl font-bold text-ink">Henüz randevunuz yok</h3>
+      <p className="text-ink-muted text-sm mt-2 max-w-sm mx-auto">
+        Stüdyonun paylaştığı randevu linkinden online randevu aldığınızda, kayıt olurken
+        kullandığınız telefon numarasıyla burada görünür.
+      </p>
+    </div>
   );
 }

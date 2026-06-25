@@ -22,10 +22,11 @@ export default function NotificationsPage() {
       const [{ data: history }, statusRes] = await Promise.all([
         supabase.from("notifications").select("*").eq("tenant_id", tenantId)
           .order("created_at", { ascending: false }).limit(50),
-        fetch("/api/notifications/status").then((r) => r.json()).catch(() => ({ sms: false, email: false, push: false })),
+        fetch("/api/notifications/status", { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then((r) => r.json()).catch(() => ({ sms: false, email: false, push: false })),
       ]);
 
-      setData({ tenantId, history: history ?? [], status: statusRes });
+      setData({ tenantId, userId: user.id, history: history ?? [], status: statusRes });
       setLoading(false);
     }
     load();

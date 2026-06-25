@@ -15,8 +15,9 @@ const CHANNEL_META: Record<string, { icon: any; label: string }> = {
   whatsapp: { icon: MessageSquare, label: "WhatsApp" },
 };
 
-export function NotificationsClient({ history, status }: { history: any[]; status: any }) {
+export function NotificationsClient({ tenantId, userId, history, status }: { tenantId: string; userId: string; history: any[]; status: any }) {
   const [showCompose, setShowCompose] = useState(false);
+  const [items, setItems] = useState<any[]>(history);
 
   const cards = [
     { id: "sms", icon: Smartphone, label: "SMS", desc: "Netgsm entegrasyonu", on: status.sms },
@@ -61,14 +62,14 @@ export function NotificationsClient({ history, status }: { history: any[]; statu
         <div className="px-5 py-4 border-b border-line">
           <h2 className="font-semibold text-ink">Bildirim Geçmişi</h2>
         </div>
-        {history.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <Bell className="w-12 h-12 text-brand/20 mb-3" />
             <p className="text-ink-subtle">Henüz bildirim gönderilmemiş</p>
           </div>
         ) : (
           <div className="divide-y divide-line">
-            {history.map((n) => {
+            {items.map((n) => {
               const meta = CHANNEL_META[n.channel] ?? { icon: Bell, label: n.channel };
               const Icon = meta.icon;
               const failed = !!n.failed_at;
@@ -95,12 +96,22 @@ export function NotificationsClient({ history, status }: { history: any[]; statu
         )}
       </div>
 
-      {showCompose && <ComposeModal status={status} onClose={() => setShowCompose(false)} />}
+      {showCompose && (
+        <ComposeModal
+          status={status}
+          tenantId={tenantId}
+          senderId={userId}
+          onSent={(n) => setItems((prev) => [n, ...prev])}
+          onClose={() => setShowCompose(false)}
+        />
+      )}
     </div>
   );
 }
 
-function ComposeModal({ status, onClose }: { status: any; onClose: () => void }) {
+function ComposeModal({ status, tenantId, senderId, onSent, onClose }: {
+  status: any; tenantId: string; senderId: string; onSent: (n: any) => void; onClose: () => void;
+}) {
   const [channel, setChannel] = useState<"sms" | "email">(status.sms ? "sms" : "email");
   const [form, setForm] = useState({ to: "", title: "", message: "" });
   const [sending, setSending] = useState(false);
@@ -116,11 +127,23 @@ function ComposeModal({ status, onClose }: { status: any; onClose: () => void })
       const res = await fetch("/api/notifications/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel, to: form.to, title: form.title, message: form.message }),
+        body: JSON.stringify({ channel, to: form.to, title: form.title, message: form.message, tenantId, senderId }),
       });
       const data = await res.json();
       if (!res.ok) toast.error("Gönderilemedi", { description: data.error });
-      else { toast.success("Bildirim gönderildi"); onClose(); }
+      else {
+        toast.success("Bildirim gönderildi");
+        onSent({
+          id: data.id ?? `local-${Date.now()}`,
+          channel,
+          type: "manual",
+          title: form.title?.trim() || (channel === "sms" ? "SMS" : "E-posta"),
+          body: form.message,
+          created_at: new Date().toISOString(),
+          failed_at: null,
+        });
+        onClose();
+      }
     } catch {
       toast.error("Bağlantı hatası");
     }

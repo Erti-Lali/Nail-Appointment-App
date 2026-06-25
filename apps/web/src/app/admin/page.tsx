@@ -9,7 +9,26 @@ import { toast } from "sonner";
 import {
   Loader2, Building2, Users, CalendarDays, TrendingUp,
   LogOut, Shield, ExternalLink, ArrowLeft, Plus, KeyRound, X, Check, Copy,
+  Settings, Link2,
 } from "lucide-react";
+
+const SLOT_DURATIONS = [15, 30, 45, 60];
+
+function slugify(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
+    .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c")
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function bookingUrl(slug: string): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/book/${slug}`;
+}
 
 const PLAN_LABELS: Record<string, string> = {
   baslangic: "Başlangıç", profesyonel: "Profesyonel", isletme: "İşletme",
@@ -27,6 +46,8 @@ export default function AdminPage() {
   const [token, setToken] = useState("");
   const [meId, setMeId] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [editTenant, setEditTenant] = useState<any>(null);
+  const [createdLink, setCreatedLink] = useState<{ name: string; slug: string } | null>(null);
   const [resetResult, setResetResult] = useState<{ email: string; password: string } | null>(null);
 
   const fetchData = async (tk: string) => {
@@ -57,6 +78,10 @@ export default function AdminPage() {
       body: JSON.stringify({ tenantId, ...patch }),
     });
     if (!res.ok) { setData(prev); toast.error("Güncellenemedi"); } else toast.success("Güncellendi");
+  };
+
+  const mergeTenant = (updated: any) => {
+    setData((d: any) => ({ ...d, tenants: d.tenants.map((t: any) => (t.id === updated.id ? { ...t, ...updated } : t)) }));
   };
 
   const changeRole = async (userId: string, role: string) => {
@@ -163,7 +188,8 @@ export default function AdminPage() {
                   <th className="px-3 py-3 font-medium text-center">Randevu</th>
                   <th className="px-3 py-3 font-medium text-right">Ciro</th>
                   <th className="px-3 py-3 font-medium text-center">Durum</th>
-                  <th className="px-5 py-3 font-medium text-right">Sayfa</th>
+                  <th className="px-3 py-3 font-medium text-right">Sayfa</th>
+                  <th className="px-5 py-3 font-medium text-right">Ayar</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -188,8 +214,14 @@ export default function AdminPage() {
                         {t.is_active ? "Aktif" : "Pasif"}
                       </button>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-3 py-3 text-right">
                       <a href={`/book/${t.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink-muted hover:text-brand text-xs">Aç <ExternalLink className="w-3 h-3" /></a>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <button onClick={() => setEditTenant(t)} title="Detaylı ayarlar"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-ink-muted hover:text-brand hover:bg-brand/10 transition-colors">
+                        <Settings className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -240,32 +272,55 @@ export default function AdminPage() {
         </section>
       </main>
 
-      {showNew && <NewStudioModal token={token} onClose={() => setShowNew(false)} onCreated={() => { setShowNew(false); fetchData(token); }} />}
+      {showNew && (
+        <NewStudioModal
+          token={token}
+          onClose={() => setShowNew(false)}
+          onCreated={(tenant) => { setShowNew(false); fetchData(token); if (tenant) setCreatedLink(tenant); }}
+        />
+      )}
+      {editTenant && (
+        <EditStudioModal
+          token={token}
+          tenant={editTenant}
+          onClose={() => setEditTenant(null)}
+          onSaved={(updated) => { mergeTenant(updated); setEditTenant(null); }}
+        />
+      )}
+      {createdLink && <StudioLinkModal tenant={createdLink} onClose={() => setCreatedLink(null)} />}
       {resetResult && <ResetResultModal data={resetResult} onClose={() => setResetResult(null)} />}
     </div>
   );
 }
 
-function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose: () => void; onCreated: () => void }) {
+function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose: () => void; onCreated: (tenant?: { name: string; slug: string }) => void }) {
   const [form, setForm] = useState({ name: "", slug: "", plan: "baslangic", ownerEmail: "", ownerPassword: "", ownerFirstName: "", ownerLastName: "" });
+  const [slugEdited, setSlugEdited] = useState(false);
   const [saving, setSaving] = useState(false);
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const inp = "w-full bg-surface-soft border border-line rounded-xl px-3 py-2 text-sm text-ink placeholder:text-ink-subtle outline-none focus:border-brand transition-all";
   const lbl = "block text-xs font-medium text-ink-muted mb-1";
 
+  // İsim yazıldıkça slug'ı (randevu linkini) otomatik üret — kullanıcı elle değiştirmediyse.
+  const onNameChange = (v: string) => {
+    setForm((f) => ({ ...f, name: v, slug: slugEdited ? f.slug : slugify(v) }));
+  };
+  const onSlugChange = (v: string) => { setSlugEdited(true); set("slug", slugify(v)); };
+
   const submit = async () => {
-    if (!form.name.trim() || !form.slug.trim()) { toast.error("İsim ve slug zorunlu"); return; }
+    const slug = slugEdited ? form.slug : slugify(form.name);
+    if (!form.name.trim() || !slug) { toast.error("İsim zorunlu"); return; }
     setSaving(true);
     const res = await fetch("/api/admin/studio", {
       method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, slug }),
     });
     const j = await res.json().catch(() => ({}));
     setSaving(false);
     if (!res.ok) { toast.error(j.error ?? "Oluşturulamadı"); return; }
     toast.success(j.ownerWarning ? "Stüdyo oluştu (sahip hesabı hariç)" : "Stüdyo oluşturuldu");
     if (j.ownerWarning) toast.error(j.ownerWarning);
-    onCreated();
+    onCreated(j.tenant ? { name: j.tenant.name, slug: j.tenant.slug } : undefined);
   };
 
   return (
@@ -277,11 +332,11 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
           <button onClick={onClose} className="text-ink-subtle hover:text-ink"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5 space-y-3">
-          <div><label className={lbl}>Stüdyo Adı *</label><input className={inp} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Glamour Nails" /></div>
+          <div><label className={lbl}>Stüdyo Adı *</label><input className={inp} value={form.name} onChange={(e) => onNameChange(e.target.value)} placeholder="Glamour Nails" /></div>
           <div>
-            <label className={lbl}>Slug * (randevu linki)</label>
-            <input className={inp} value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="glamour-nails" />
-            <p className="text-[10px] text-ink-subtle mt-1">/book/{form.slug || "slug"}</p>
+            <label className={lbl}>Randevu Linki (otomatik)</label>
+            <input className={inp} value={form.slug} onChange={(e) => onSlugChange(e.target.value)} placeholder="glamour-nails" />
+            <p className="text-[10px] text-ink-subtle mt-1 flex items-center gap-1"><Link2 className="w-3 h-3" /> /book/{form.slug || "slug"} — isimden otomatik üretilir, gerekirse düzenleyin</p>
           </div>
           <div>
             <label className={lbl}>Plan</label>
@@ -304,6 +359,138 @@ function NewStudioModal({ token, onClose, onCreated }: { token: string; onClose:
           <button onClick={submit} disabled={saving} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Oluştur"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditStudioModal({ token, tenant, onClose, onSaved }: {
+  token: string;
+  tenant: any;
+  onClose: () => void;
+  onSaved: (updated: any) => void;
+}) {
+  const [form, setForm] = useState({
+    name: tenant.name ?? "",
+    slug: tenant.slug ?? "",
+    description: tenant.description ?? "",
+    subscription_plan: tenant.subscription_plan ?? "baslangic",
+    is_active: tenant.is_active ?? true,
+    slot_duration_minutes: tenant.slot_duration_minutes ?? 30,
+    auto_confirm: tenant.auto_confirm ?? false,
+  });
+  const [saving, setSaving] = useState(false);
+  const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const inp = "w-full bg-surface-soft border border-line rounded-xl px-3 py-2 text-sm text-ink placeholder:text-ink-subtle outline-none focus:border-brand transition-all";
+  const lbl = "block text-xs font-medium text-ink-muted mb-1";
+
+  const copyLink = () => { navigator.clipboard?.writeText(bookingUrl(form.slug)); toast.success("Link kopyalandı"); };
+
+  const submit = async () => {
+    if (!form.name.trim() || !slugify(form.slug)) { toast.error("İsim ve link zorunlu"); return; }
+    setSaving(true);
+    const res = await fetch("/api/admin/tenant", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        tenantId: tenant.id,
+        name: form.name.trim(),
+        slug: slugify(form.slug),
+        description: form.description,
+        subscription_plan: form.subscription_plan,
+        is_active: form.is_active,
+        slot_duration_minutes: form.slot_duration_minutes,
+        auto_confirm: form.auto_confirm,
+      }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (!res.ok) { toast.error(j.error ?? "Kaydedilemedi"); return; }
+    toast.success("Ayarlar kaydedildi");
+    onSaved(j.tenant ?? { id: tenant.id, ...form, slug: slugify(form.slug) });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-xl overflow-hidden animate-slide-up max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-surface z-10">
+          <div className="flex items-center gap-2 min-w-0">
+            <Settings className="w-4 h-4 text-brand shrink-0" />
+            <h2 className="font-semibold truncate">Stüdyo Ayarları</h2>
+          </div>
+          <button onClick={onClose} className="text-ink-subtle hover:text-ink"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div><label className={lbl}>Stüdyo Adı *</label><input className={inp} value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
+
+          <div>
+            <label className={lbl}>Randevu Linki *</label>
+            <input className={inp} value={form.slug} onChange={(e) => set("slug", slugify(e.target.value))} />
+            <div className="flex items-center gap-2 mt-1.5">
+              <code className="flex-1 text-[11px] text-ink-muted bg-surface-soft border border-line rounded-lg px-2 py-1.5 truncate">{bookingUrl(slugify(form.slug) || "slug")}</code>
+              <button onClick={copyLink} className="text-ink-subtle hover:text-brand shrink-0" title="Linki kopyala"><Copy className="w-4 h-4" /></button>
+              <a href={`/book/${slugify(form.slug)}`} target="_blank" rel="noreferrer" className="text-ink-subtle hover:text-brand shrink-0" title="Linki aç"><ExternalLink className="w-4 h-4" /></a>
+            </div>
+          </div>
+
+          <div>
+            <label className={lbl}>Açıklama</label>
+            <textarea className={inp + " resize-none"} rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Stüdyo hakkında kısa açıklama" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Plan</label>
+              <select className={inp + " cursor-pointer"} value={form.subscription_plan} onChange={(e) => set("subscription_plan", e.target.value)}>
+                {Object.entries(PLAN_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lbl}>Randevu Slot Süresi</label>
+              <select className={inp + " cursor-pointer"} value={form.slot_duration_minutes} onChange={(e) => set("slot_duration_minutes", Number(e.target.value))}>
+                {SLOT_DURATIONS.map((m) => <option key={m} value={m}>{m} dk</option>)}
+              </select>
+            </div>
+          </div>
+
+          <label className="flex items-center justify-between gap-3 bg-surface-soft border border-line rounded-xl px-3 py-2.5 cursor-pointer">
+            <span className="text-sm text-ink">Stüdyo aktif</span>
+            <input type="checkbox" checked={form.is_active} onChange={(e) => set("is_active", e.target.checked)} className="accent-[rgb(var(--ns-brand))] w-4 h-4" />
+          </label>
+
+          <label className="flex items-center justify-between gap-3 bg-surface-soft border border-line rounded-xl px-3 py-2.5 cursor-pointer">
+            <span className="text-sm text-ink">Randevuları otomatik onayla</span>
+            <input type="checkbox" checked={form.auto_confirm} onChange={(e) => set("auto_confirm", e.target.checked)} className="accent-[rgb(var(--ns-brand))] w-4 h-4" />
+          </label>
+        </div>
+        <div className="flex gap-3 p-5 pt-0">
+          <button onClick={onClose} className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl transition-all">İptal</button>
+          <button onClick={submit} disabled={saving} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Kaydet"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StudioLinkModal({ tenant, onClose }: { tenant: { name: string; slug: string }; onClose: () => void }) {
+  const url = bookingUrl(tenant.slug);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-surface border border-line rounded-2xl shadow-xl p-6 animate-slide-up text-center">
+        <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center mx-auto mb-3"><Link2 className="w-6 h-6 text-brand" /></div>
+        <h2 className="font-bold text-ink">{tenant.name} hazır</h2>
+        <p className="text-ink-muted text-sm mt-1">Randevu linki otomatik oluşturuldu.</p>
+        <div className="mt-4 flex items-center gap-2 bg-surface-soft border border-line rounded-xl px-3 py-2.5">
+          <code className="flex-1 text-ink font-mono text-xs break-all text-left">{url}</code>
+          <button onClick={() => { navigator.clipboard?.writeText(url); toast.success("Kopyalandı"); }} className="text-ink-subtle hover:text-brand shrink-0"><Copy className="w-4 h-4" /></button>
+        </div>
+        <div className="flex gap-2 mt-5">
+          <a href={`/book/${tenant.slug}`} target="_blank" rel="noreferrer" className="flex-1 border border-line text-ink-muted hover:border-brand font-medium py-2.5 rounded-xl transition-all inline-flex items-center justify-center gap-1.5">Linki Aç <ExternalLink className="w-4 h-4" /></a>
+          <button onClick={onClose} className="flex-1 bg-brand hover:bg-brand-dark text-white font-semibold py-2.5 rounded-xl transition-colors">Tamam</button>
         </div>
       </div>
     </div>
