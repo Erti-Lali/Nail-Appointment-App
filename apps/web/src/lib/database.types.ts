@@ -49,6 +49,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["push_tokens"]["Insert"]>;
         Relationships: [];
       };
+      appointment_photos: {
+        Row: { id: string; appointment_id: string; tenant_id: string; url: string; path: string | null; created_at: string | null };
+        Insert: { id?: string; appointment_id: string; tenant_id: string; url: string; path?: string | null; created_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["appointment_photos"]["Insert"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at: string | null; data: Json | null; failed_at: string | null; id: string; is_read: boolean | null; recipient_id: string; sent_at: string | null; tenant_id: string; title: string; type: string };
         Insert: { body: string; channel: Database["public"]["Enums"]["notification_channel"]; created_at?: string | null; data?: Json | null; failed_at?: string | null; id?: string; is_read?: boolean | null; recipient_id: string; sent_at?: string | null; tenant_id: string; title: string; type: string };

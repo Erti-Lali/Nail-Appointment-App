@@ -46,72 +46,40 @@ export function StaffDetailPanel({ staff, services, tenantId, onClose, onUpdate 
     is_active: staff.is_active,
   });
 
-  const saveWorkingHours = async () => {
+  // Tüm sekmelerdeki değişiklikleri tek seferde kaydeder (çalışma saatleri +
+  // hizmetler + genel ayarlar). Tek "Kaydet" butonu bunu çağırır.
+  const saveAll = async () => {
     setLoading(true);
 
-    // Upsert working hours
-    const rows = workingHours.map((h) => ({
-      ...h,
-      staff_id: staff.id,
-      tenant_id: tenantId,
-    }));
-
-    const { error } = await supabase
+    // 1) Çalışma saatleri (upsert)
+    const whRows = workingHours.map((h) => ({ ...h, staff_id: staff.id, tenant_id: tenantId }));
+    const { error: whErr } = await supabase
       .from("staff_working_hours")
-      .upsert(rows, { onConflict: "staff_id,day_of_week" });
+      .upsert(whRows, { onConflict: "staff_id,day_of_week" });
+    if (whErr) { toast.error("Kaydedilemedi", { description: whErr.message }); setLoading(false); return; }
 
-    if (error) {
-      toast.error("Kaydedilemedi", { description: error.message });
-    } else {
-      onUpdate({ ...staff, working_hours: workingHours });
-      toast.success("Çalışma saatleri kaydedildi");
-    }
-    setLoading(false);
-  };
-
-  const saveServices = async () => {
-    setLoading(true);
-
-    // Delete existing
-    const { error: delError } = await supabase
-      .from("service_staff")
-      .delete()
-      .eq("staff_id", staff.id);
-
-    if (delError) {
-      toast.error("Kaydedilemedi", { description: delError.message });
-      setLoading(false);
-      return;
-    }
-
+    // 2) Hizmet atamaları (sil + ekle)
+    const { error: delErr } = await supabase.from("service_staff").delete().eq("staff_id", staff.id);
+    if (delErr) { toast.error("Kaydedilemedi", { description: delErr.message }); setLoading(false); return; }
     if (assignedServices.length > 0) {
-      const { error: insError } = await supabase.from("service_staff").insert(
+      const { error: insErr } = await supabase.from("service_staff").insert(
         assignedServices.map((sid) => ({ service_id: sid, staff_id: staff.id }))
       );
-      if (insError) {
-        toast.error("Kaydedilemedi", { description: insError.message });
-        setLoading(false);
-        return;
-      }
+      if (insErr) { toast.error("Kaydedilemedi", { description: insErr.message }); setLoading(false); return; }
     }
 
-    // Keep local staff state in sync so the card counts update.
-    onUpdate({ ...staff, service_staff: assignedServices.map((sid) => ({ service_id: sid })) });
-    toast.success("Hizmetler kaydedildi");
-    setLoading(false);
-  };
+    // 3) Genel ayarlar
+    const { data, error: setErr } = await supabase
+      .from("staff").update(settings).eq("id", staff.id).select().single();
+    if (setErr) { toast.error("Kaydedilemedi", { description: setErr.message }); setLoading(false); return; }
 
-  const saveSettings = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("staff")
-      .update(settings)
-      .eq("id", staff.id)
-      .select()
-      .single();
-
-    if (error) toast.error("Kaydedilemedi");
-    else { toast.success("Ayarlar kaydedildi"); onUpdate({ ...staff, ...data }); }
+    onUpdate({
+      ...staff,
+      ...(data ?? {}),
+      working_hours: workingHours,
+      service_staff: assignedServices.map((sid) => ({ service_id: sid })),
+    });
+    toast.success("Değişiklikler kaydedildi");
     setLoading(false);
   };
 
@@ -196,13 +164,6 @@ export function StaffDetailPanel({ staff, services, tenantId, onClose, onUpdate 
                 </div>
               </div>
             ))}
-            <button
-              onClick={saveWorkingHours}
-              disabled={loading}
-              className="btn-gold w-full flex items-center justify-center gap-2 text-sm"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Kaydet</>}
-            </button>
           </>
         )}
 
@@ -242,13 +203,6 @@ export function StaffDetailPanel({ staff, services, tenantId, onClose, onUpdate 
                 </button>
               );
             })}
-            <button
-              onClick={saveServices}
-              disabled={loading}
-              className="btn-gold w-full flex items-center justify-center gap-2 text-sm"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Kaydet</>}
-            </button>
           </>
         )}
 
@@ -301,16 +255,19 @@ export function StaffDetailPanel({ staff, services, tenantId, onClose, onUpdate 
                 <span className="text-white/40 text-sm">dakika</span>
               </div>
             </div>
-
-            <button
-              onClick={saveSettings}
-              disabled={loading}
-              className="btn-gold w-full flex items-center justify-center gap-2 text-sm"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Kaydet</>}
-            </button>
           </>
         )}
+      </div>
+
+      {/* Tek kaydet — tüm sekmelerdeki değişiklikleri birlikte kaydeder */}
+      <div className="shrink-0 pt-4 mt-2 border-t border-black-border">
+        <button
+          onClick={saveAll}
+          disabled={loading}
+          className="btn-gold w-full flex items-center justify-center gap-2 text-sm"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Kaydet</>}
+        </button>
       </div>
     </div>
   );

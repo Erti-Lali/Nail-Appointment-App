@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
 import { X, Phone, Clock, Scissors, User, CheckCircle2, XCircle, RotateCcw, AlertCircle, Loader2 } from "lucide-react";
@@ -33,7 +33,18 @@ export function AppointmentDetailModal({
 }: AppointmentDetailModalProps) {
   const [loading, setLoading] = useState(false);
   const [staffNote, setStaffNote] = useState(appt.staff_notes ?? "");
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const supabase = createClient();
+
+  // Customer reference photos attached during booking (staff RLS).
+  useEffect(() => {
+    supabase
+      .from("appointment_photos")
+      .select("id, url")
+      .eq("appointment_id", appt.id)
+      .then(({ data }) => setPhotos(data ?? []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appt.id]);
 
   // All services on this appointment (junction); fall back to the single service.
   const apptServices: any[] = appt.appointment_services?.length
@@ -184,6 +195,22 @@ export function AppointmentDetailModal({
             <div className="bg-black-soft rounded-xl border border-black-border p-3">
               <p className="text-white/30 text-xs mb-1.5">Müşteri Notu</p>
               <p className="text-white/70 text-sm">{appt.customer_notes}</p>
+            </div>
+          )}
+
+          {/* Customer reference photos */}
+          {photos.length > 0 && (
+            <div className="bg-black-soft rounded-xl border border-black-border p-3">
+              <p className="text-white/30 text-xs mb-2">Referans Fotoğrafları ({photos.length})</p>
+              <div className="flex flex-wrap gap-2">
+                {photos.map((p) => (
+                  <a key={p.id} href={p.url} target="_blank" rel="noreferrer"
+                    className="w-20 h-20 rounded-lg overflow-hidden border border-black-border hover:border-gold-500/40 transition-colors">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt="" className="w-full h-full object-cover" />
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 

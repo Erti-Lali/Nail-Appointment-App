@@ -220,7 +220,11 @@ function AppointmentForm({ tenant }: { tenant: any }) {
           <option value={15}>15 dakika</option>
           <option value={30}>30 dakika</option>
           <option value={45}>45 dakika</option>
-          <option value={60}>60 dakika</option>
+          <option value={60}>1 saat</option>
+          <option value={90}>1.5 saat</option>
+          <option value={120}>2 saat</option>
+          <option value={180}>3 saat</option>
+          <option value={240}>4 saat</option>
         </select>
         <p className="text-ink-subtle text-xs mt-1">Randevu takviminde gösterilecek zaman aralığı.</p>
       </div>
