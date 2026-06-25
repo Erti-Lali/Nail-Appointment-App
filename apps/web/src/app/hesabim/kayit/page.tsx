@@ -11,11 +11,13 @@ export default function CustomerRegisterPage() {
   const supabase = createClient();
   const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.phone.trim()) { toast.error("Telefon zorunlu", { description: "Randevularınızı eşleştirmek için gereklidir." }); return; }
+    if (!consent) { toast.error("Devam etmek için KVKK ve gizlilik onayı gerekli"); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: form.email,
@@ -55,6 +57,14 @@ export default function CustomerRegisterPage() {
             <Field label="Telefon *" hint="Randevularınız bu numarayla eşleştirilir."><Input type="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="05xx xxx xx xx" required /></Field>
             <Field label="E-posta"><Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="ornek@mail.com" required /></Field>
             <Field label="Şifre"><Input type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="En az 6 karakter" required minLength={6} /></Field>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
+                className="accent-[rgb(var(--ns-brand))] w-4 h-4 mt-0.5 shrink-0" />
+              <span className="text-xs text-ink-muted leading-relaxed">
+                <a href="/kvkk" target="_blank" rel="noreferrer" className="text-brand font-medium">KVKK Aydınlatma Metni</a> ve{" "}
+                <a href="/gizlilik" target="_blank" rel="noreferrer" className="text-brand font-medium">Gizlilik Politikası</a>&apos;nı okudum, onaylıyorum.
+              </span>
+            </label>
             <Button type="submit" className="w-full" loading={loading}>Kayıt Ol</Button>
           </form>
           <p className="text-center text-sm text-ink-muted mt-5">

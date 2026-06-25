@@ -45,6 +45,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
   // Customer reference photos (optional, max 5)
   const [photos, setPhotos] = useState<{ url: string; path?: string }[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   const MAX_PHOTOS = 5;
   const ALLOWED_IMG = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -170,7 +171,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
     (step === 0 && serviceIds.length > 0) ||
     (step === 1 && !!staffId) ||
     (step === 2 && !!time) ||
-    (step === 3 && form.firstName.trim() !== "" && isValidPhone(form.phone));
+    (step === 3 && form.firstName.trim() !== "" && isValidPhone(form.phone) && consent);
 
   const submit = async () => {
     setSubmitting(true);
@@ -471,6 +472,16 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
               </div>
               <p className="text-[11px] text-ink-subtle mt-1">İstediğiniz tasarım/ilham görsellerini ekleyin · max {MAX_PHOTOS}, 5MB</p>
             </div>
+
+            {/* KVKK / gizlilik onayı (zorunlu) */}
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
+                className="accent-[rgb(var(--ns-brand))] w-4 h-4 mt-0.5 shrink-0" />
+              <span className="text-xs text-ink-muted leading-relaxed">
+                <a href="/kvkk" target="_blank" rel="noreferrer" className="text-brand font-medium hover:text-brand-dark">KVKK Aydınlatma Metni</a>&apos;ni ve{" "}
+                <a href="/gizlilik" target="_blank" rel="noreferrer" className="text-brand font-medium hover:text-brand-dark">Gizlilik Politikası</a>&apos;nı okudum, kişisel verilerimin randevu amacıyla işlenmesini onaylıyorum.
+              </span>
+            </label>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{error}</div>
