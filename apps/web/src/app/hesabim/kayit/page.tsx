@@ -21,6 +21,7 @@ export default function CustomerRegisterPage() {
       email: form.email,
       password: form.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           first_name: form.firstName,
           last_name: form.lastName,
