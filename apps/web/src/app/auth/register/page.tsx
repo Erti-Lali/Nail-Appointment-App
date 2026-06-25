@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -21,6 +22,7 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!consent) { toast.error("Devam etmek için KVKK ve gizlilik onayı gerekli"); return; }
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -124,6 +126,15 @@ export default function RegisterPage() {
                   required
                 />
               </div>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
+                  className="accent-[#C4356A] w-4 h-4 mt-0.5 shrink-0" />
+                <span className="text-xs text-[#6B3050] leading-relaxed">
+                  <a href="/kvkk" target="_blank" rel="noreferrer" className="text-[#C4356A] font-medium">KVKK Aydınlatma Metni</a> ve{" "}
+                  <a href="/gizlilik" target="_blank" rel="noreferrer" className="text-[#C4356A] font-medium">Gizlilik Politikası</a>&apos;nı okudum, onaylıyorum.
+                </span>
+              </label>
 
               <button
                 type="submit"

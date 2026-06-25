@@ -250,10 +250,12 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-sm">NailStudio 101</span>
           </div>
-          <div className="flex items-center gap-5 text-sm text-ink-muted">
+          <div className="flex items-center gap-5 text-sm text-ink-muted flex-wrap justify-center">
             <Link href="/auth/login" className="hover:text-brand transition-colors">Giriş</Link>
             <Link href="/auth/register" className="hover:text-brand transition-colors">Kayıt</Link>
             <Link href="#fiyatlandirma" className="hover:text-brand transition-colors">Fiyatlar</Link>
+            <Link href="/gizlilik" className="hover:text-brand transition-colors">Gizlilik</Link>
+            <Link href="/kvkk" className="hover:text-brand transition-colors">KVKK</Link>
           </div>
           <p className="text-xs text-ink-subtle">© {new Date().getFullYear()} NailStudio 101</p>
         </div>
