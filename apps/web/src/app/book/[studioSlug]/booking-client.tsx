@@ -5,7 +5,7 @@ import { format, addDays, addMinutes, parseISO, isBefore } from "date-fns";
 import { tr } from "date-fns/locale";
 import {
   Check, ChevronLeft, ChevronRight, Clock, MapPin, Instagram,
-  Loader2, CalendarCheck, Phone,
+  Loader2, CalendarCheck, Phone, ImagePlus, X,
 } from "lucide-react";
 import { formatPrice, minutesToDisplay, isValidPhone } from "@nailstudio/shared";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,36 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Customer reference photos (optional, max 5)
+  const [photos, setPhotos] = useState<{ url: string; path?: string }[]>([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
+
+  const MAX_PHOTOS = 5;
+  const ALLOWED_IMG = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+  const handlePhotoFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const slots = MAX_PHOTOS - photos.length;
+    const list = Array.from(files).slice(0, Math.max(0, slots));
+    if (list.length === 0) { setError(`En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsiniz.`); return; }
+    setPhotoUploading(true);
+    for (const file of list) {
+      if (!ALLOWED_IMG.includes(file.type)) { setError("Desteklenmeyen dosya türü."); continue; }
+      if (file.size > 5 * 1024 * 1024) { setError("Fotoğraf 5MB'tan büyük olamaz."); continue; }
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("tenantId", tenant.id);
+      try {
+        const res = await fetch("/api/book/photo", { method: "POST", body: fd });
+        const d = await res.json();
+        if (res.ok && d.url) setPhotos((prev) => [...prev, { url: d.url, path: d.path }]);
+        else setError(d.error ?? "Fotoğraf yüklenemedi");
+      } catch {
+        setError("Fotoğraf yüklenemedi");
+      }
+    }
+    setPhotoUploading(false);
+  };
   // Favorites — only offered to a logged-in customer on the success screen.
   const [favToken, setFavToken] = useState<string | null>(null);
   const [favAdding, setFavAdding] = useState(false);
@@ -161,6 +191,7 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
             email: form.email,
           },
           notes: form.notes,
+          photos,
         }),
       });
       const data = await res.json();
@@ -409,6 +440,36 @@ export function BookingClient({ tenant, categories, services, staff }: Props) {
               <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2}
                 placeholder="Özel istekleriniz..."
                 className="w-full bg-surface-soft border border-line rounded-xl px-4 py-2.5 text-ink placeholder:text-ink-subtle outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all resize-none" />
+            </div>
+
+            {/* Referans fotoğrafları (opsiyonel) */}
+            <div>
+              <label className="block text-sm font-medium text-ink-muted mb-1.5">
+                Referans fotoğrafı (opsiyonel)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {photos.map((p, i) => (
+                  <div key={p.url} className="relative w-20 h-20 rounded-xl overflow-hidden border border-line">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setPhotos((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-ink/70 text-white flex items-center justify-center">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                {photos.length < MAX_PHOTOS && (
+                  <label className={cn(
+                    "w-20 h-20 rounded-xl border-2 border-dashed border-line hover:border-brand/40 flex flex-col items-center justify-center gap-1 cursor-pointer text-ink-subtle transition-colors",
+                    photoUploading && "opacity-50 pointer-events-none")}>
+                    {photoUploading ? <Loader2 className="w-5 h-5 animate-spin text-brand" /> : <ImagePlus className="w-5 h-5" />}
+                    <span className="text-[10px]">Ekle</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden"
+                      onChange={(e) => { handlePhotoFiles(e.target.files); e.target.value = ""; }} />
+                  </label>
+                )}
+              </div>
+              <p className="text-[11px] text-ink-subtle mt-1">İstediğiniz tasarım/ilham görsellerini ekleyin · max {MAX_PHOTOS}, 5MB</p>
             </div>
 
             {error && (

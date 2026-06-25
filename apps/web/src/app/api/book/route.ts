@@ -20,6 +20,7 @@ interface BookingBody {
     email?: string;
   };
   notes?: string;
+  photos?: { url: string; path?: string }[];
 }
 
 // Returns taken time ranges for a staff member on a given date so the public
@@ -225,6 +226,14 @@ export async function POST(request: NextRequest) {
     duration_minutes: s.duration_minutes ?? 0,
   }));
   await supabase.from("appointment_services").insert(asRows);
+
+  // Attach customer reference photos (best-effort).
+  const photos = (body.photos ?? []).filter((p) => p?.url).slice(0, 5);
+  if (photos.length) {
+    await supabase.from("appointment_photos").insert(
+      photos.map((p) => ({ appointment_id: appointment.id, tenant_id: tenantId, url: p.url, path: p.path ?? null })),
+    );
+  }
 
   // Schedule SMS/email reminders (best-effort — never block the booking).
   try {
