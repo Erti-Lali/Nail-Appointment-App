@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
   const firstName = (body.firstName ?? "").trim();
   const lastName = (body.lastName ?? "").trim();
   const phone = (body.phone ?? "").replace(/\s+/g, "");
+  const email = (body.email ?? "").trim() || null;
   const studioName = (body.studioName ?? "").trim();
   if (!firstName || !phone || !studioName) {
     return NextResponse.json({ error: "Ad, telefon ve stüdyo adı zorunlu" }, { status: 400 });
@@ -64,6 +65,8 @@ export async function POST(req: NextRequest) {
     .insert({
       name: studioName,
       slug,
+      phone: phone || null,
+      email,
       description: (body.description ?? "").trim() || null,
       subscription_plan: "baslangic",
       currency: "TRY",

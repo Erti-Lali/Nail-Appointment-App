@@ -90,6 +90,7 @@ export default function OnboardingPage() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         firstName: form.firstName, lastName: form.lastName, phone: form.phone,
+        email: form.email.trim(),
         studioName: form.studioName, slug,
         settings: {
           slotDuration: settings.slotDuration, autoConfirm: settings.autoConfirm,
