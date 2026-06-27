@@ -12,12 +12,22 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         router.replace("/auth/login");
-      } else {
-        setChecking(false);
+        return;
       }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, tenant_id")
+        .eq("id", session.user.id)
+        .single();
+      // Stüdyo bağlamak zorunlu: tenant'ı olmayan yönetici onboarding'e gider.
+      if (profile?.role !== "customer" && !profile?.tenant_id) {
+        router.replace("/studyo-olustur");
+        return;
+      }
+      setChecking(false);
     });
   }, [router]);
 

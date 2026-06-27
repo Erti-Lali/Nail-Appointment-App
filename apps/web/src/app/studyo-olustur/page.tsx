@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { Field, Input, Button, FullPageSpinner } from "@/components/ui";
@@ -117,9 +116,6 @@ export default function OnboardingPage() {
             <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><Sparkles className="w-5 h-5 text-surface" /></div>
             <span className="font-bold text-sm">Stüdyonu Oluştur</span>
           </div>
-          <Link href="/dashboard" className="text-sm font-medium text-ink-muted hover:text-brand transition-colors">
-            Stüdyo bağlamadan devam et
-          </Link>
         </div>
       </header>
 
@@ -201,11 +197,8 @@ export default function OnboardingPage() {
           )}
         </section>
 
-        <div className="flex gap-3">
-          <Link href="/dashboard" className="flex-1 text-center border border-line text-ink-muted hover:border-brand font-medium py-3 rounded-xl transition-all bg-surface">
-            Şimdilik atla
-          </Link>
-          <Button onClick={submit} loading={saving} className="flex-1 py-3">
+        <div className="flex">
+          <Button onClick={submit} loading={saving} className="w-full py-3">
             Stüdyomu Oluştur <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

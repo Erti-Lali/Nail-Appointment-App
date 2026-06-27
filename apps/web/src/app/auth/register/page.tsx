@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { AuthBrandPanel, NailDropMark } from "@/components/auth/auth-brand-panel";
@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [consent, setConsent] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
@@ -44,7 +45,14 @@ export default function RegisterPage() {
       return;
     }
 
-    toast.success("Hesap oluşturuldu! Stüdyonu oluşturalım...");
+    setLoading(false);
+    // E-posta onayı açıksa signUp oturum döndürmez → doğrulama bekleniyor.
+    // Stüdyo oluşturma ekranı ancak e-posta doğrulandıktan sonra açılmalı.
+    if (!data.session) {
+      setSent(true);
+      return;
+    }
+    // E-posta onayı kapalıysa doğrudan stüdyo oluşturmaya geç.
     router.push("/studyo-olustur");
     router.refresh();
   };
@@ -74,6 +82,27 @@ export default function RegisterPage() {
             </span>
           </div>
 
+          {sent ? (
+            <div className="card text-center">
+              <div className="w-14 h-14 rounded-2xl bg-[#FCE7EF] flex items-center justify-center mx-auto mb-4">
+                <MailCheck className="w-7 h-7 text-[#C4356A]" />
+              </div>
+              <h1 className="font-display text-2xl font-bold text-[#2D0A1A]">E-postanı doğrula</h1>
+              <p className="text-[#6B3050] text-sm mt-2 leading-relaxed">
+                <span className="font-semibold">{form.email}</span> adresine bir doğrulama bağlantısı gönderdik.
+                Stüdyonu oluşturmak için e-postandaki bağlantıya tıkla.
+              </p>
+              <p className="text-[#9B6E7A] text-xs mt-4">
+                E-posta gelmediyse spam / gereksiz klasörünü kontrol et.
+              </p>
+              <Link
+                href="/auth/login"
+                className="inline-block mt-6 text-sm font-medium text-[#C4356A] hover:text-[#9B2550] transition-colors"
+              >
+                Giriş sayfasına dön
+              </Link>
+            </div>
+          ) : (
           <div className="card">
             <h1 className="font-display text-2xl font-bold text-[#2D0A1A]">Hesap oluşturun</h1>
             <p className="text-[#9B6E7A] text-sm mt-1 mb-6">14 gün ücretsiz deneyin</p>
@@ -152,6 +181,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </div>
+          )}
 
           <p className="text-center text-[#9B6E7A] text-xs mt-6" style={{ opacity: 0.7 }}>
             Kredi kartı gerekmez · İstediğiniz zaman iptal edin
