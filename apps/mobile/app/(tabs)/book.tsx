@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, MapPin, Star, Clock } from "lucide-react-native";
+import { ChevronRight, MapPin, Store } from "lucide-react-native";
+import { supabase } from "../../lib/supabase";
 
 const COLORS = {
   gold: "#C9A84C",
-  goldLight: "rgba(201,168,76,0.15)",
   black: "#0A0A0A",
   blackSoft: "#1A1A1A",
   blackCard: "#141414",
@@ -16,34 +16,30 @@ const COLORS = {
   whiteAlpha30: "rgba(250,250,250,0.3)",
 };
 
-// Mock studios
-const STUDIOS = [
-  {
-    id: "1",
-    slug: "glamour-nails",
-    name: "Glamour Nails",
-    city: "İstanbul, Kadıköy",
-    rating: 4.9,
-    reviewCount: 128,
-    image: null,
-    tags: ["Gel", "Nail Art", "Manikür"],
-    nextSlot: "Bugün 14:00",
-  },
-  {
-    id: "2",
-    slug: "luxe-nails-studio",
-    name: "Luxe Nails Studio",
-    city: "İstanbul, Beşiktaş",
-    rating: 4.7,
-    reviewCount: 89,
-    image: null,
-    tags: ["Kalıcı Oje", "Pedikür"],
-    nextSlot: "Yarın 10:00",
-  },
-];
+interface Studio {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  instagram_handle: string | null;
+}
 
 export default function BookScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [studios, setStudios] = useState<Studio[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("tenants")
+      .select("id, slug, name, city, instagram_handle")
+      .eq("is_active", true)
+      .order("name")
+      .then(({ data }) => {
+        setStudios(data ?? []);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -52,66 +48,49 @@ export default function BookScreen() {
         <Text style={styles.subtitle}>Stüdyo seçin ve randevunuzu oluşturun</Text>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Search */}
-        <View style={styles.searchBox}>
-          <MapPin size={16} color={COLORS.whiteAlpha50} />
-          <Text style={styles.searchText}>Konum veya stüdyo ara...</Text>
-        </View>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Stüdyolar</Text>
 
-        {/* Studios */}
-        <Text style={styles.sectionTitle}>Yakınımdaki Stüdyolar</Text>
-        {STUDIOS.map((studio) => (
-          <TouchableOpacity
-            key={studio.id}
-            style={styles.studioCard}
-            activeOpacity={0.8}
-            onPress={() => router.push(`/booking/${studio.slug}`)}
-          >
-            {/* Image placeholder */}
-            <View style={styles.studioImage}>
-              <Text style={{ fontSize: 32 }}>💅</Text>
-            </View>
+        {loading ? (
+          <ActivityIndicator color={COLORS.gold} style={{ marginTop: 40 }} />
+        ) : studios.length === 0 ? (
+          <View style={styles.empty}>
+            <Store size={40} color={COLORS.whiteAlpha30} />
+            <Text style={styles.emptyText}>Şu an aktif stüdyo yok.</Text>
+          </View>
+        ) : (
+          studios.map((studio) => (
+            <TouchableOpacity
+              key={studio.id}
+              style={styles.studioCard}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/booking/${studio.slug}`)}
+            >
+              <View style={styles.studioImage}>
+                <Text style={{ fontSize: 32 }}>💅</Text>
+              </View>
 
-            <View style={styles.studioInfo}>
-              <View style={styles.studioRow}>
+              <View style={styles.studioInfo}>
                 <Text style={styles.studioName}>{studio.name}</Text>
-                <View style={styles.ratingBadge}>
-                  <Star size={10} color={COLORS.gold} fill={COLORS.gold} />
-                  <Text style={styles.ratingText}>{studio.rating}</Text>
-                </View>
-              </View>
 
-              <View style={styles.locationRow}>
-                <MapPin size={11} color={COLORS.whiteAlpha50} />
-                <Text style={styles.locationText}>{studio.city}</Text>
-              </View>
-
-              <View style={styles.tags}>
-                {studio.tags.map((tag) => (
-                  <View key={tag} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
+                {studio.city ? (
+                  <View style={styles.locationRow}>
+                    <MapPin size={11} color={COLORS.whiteAlpha50} />
+                    <Text style={styles.locationText}>{studio.city}</Text>
                   </View>
-                ))}
-              </View>
+                ) : null}
 
-              <View style={styles.studioFooter}>
-                <View style={styles.nextSlot}>
-                  <Clock size={11} color={COLORS.gold} />
-                  <Text style={styles.nextSlotText}>{studio.nextSlot}</Text>
-                </View>
-                <View style={styles.bookBtn}>
-                  <Text style={styles.bookBtnText}>Randevu Al</Text>
-                  <ChevronRight size={12} color={COLORS.black} />
+                <View style={styles.studioFooter}>
+                  {studio.instagram_handle ? <Text style={styles.handleText}>@{studio.instagram_handle}</Text> : <View />}
+                  <View style={styles.bookBtn}>
+                    <Text style={styles.bookBtnText}>Randevu Al</Text>
+                    <ChevronRight size={12} color={COLORS.black} />
+                  </View>
                 </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -125,21 +104,10 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
 
-  searchBox: {
-    backgroundColor: COLORS.blackSoft,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.blackBorder,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 24,
-  },
-  searchText: { color: COLORS.whiteAlpha30, fontSize: 14 },
-
   sectionTitle: { fontSize: 14, fontWeight: "600", color: COLORS.whiteAlpha50, marginBottom: 12 },
+
+  empty: { alignItems: "center", gap: 10, marginTop: 50 },
+  emptyText: { color: COLORS.whiteAlpha50, fontSize: 14 },
 
   studioCard: {
     backgroundColor: COLORS.blackCard,
@@ -149,48 +117,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 16,
   },
-  studioImage: {
-    height: 120,
-    backgroundColor: COLORS.blackSoft,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  studioImage: { height: 120, backgroundColor: COLORS.blackSoft, justifyContent: "center", alignItems: "center" },
   studioInfo: { padding: 16 },
-  studioRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   studioName: { fontSize: 16, fontWeight: "700", color: COLORS.white },
-  ratingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    backgroundColor: COLORS.goldLight,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  ratingText: { fontSize: 11, fontWeight: "600", color: COLORS.gold },
 
   locationRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 },
   locationText: { fontSize: 12, color: COLORS.whiteAlpha50 },
+  handleText: { fontSize: 12, color: COLORS.whiteAlpha50 },
 
-  tags: { flexDirection: "row", gap: 6, marginTop: 10, flexWrap: "wrap" },
-  tag: {
-    backgroundColor: "rgba(250,250,250,0.06)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.blackBorder,
-  },
-  tagText: { fontSize: 11, color: COLORS.whiteAlpha50 },
-
-  studioFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 14,
-  },
-  nextSlot: { flexDirection: "row", alignItems: "center", gap: 4 },
-  nextSlotText: { fontSize: 12, color: COLORS.gold, fontWeight: "500" },
+  studioFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
   bookBtn: {
     backgroundColor: COLORS.gold,
     flexDirection: "row",

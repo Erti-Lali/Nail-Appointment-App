@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm install --ignore-scripts --prefix=../..",
   "crons": [
     { "path": "/api/cron/reminders", "schedule": "*/5 * * * *" }
   ]
